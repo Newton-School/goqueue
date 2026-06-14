@@ -37,6 +37,28 @@ func TaskEnvelopeToMessage(envelope TaskEnvelope, codec PayloadCodec) (TaskMessa
 	}, nil
 }
 
+// TaskMessageToEnvelope decodes a backend message into a validated envelope.
+func TaskMessageToEnvelope(message TaskMessage, codec PayloadCodec) (TaskEnvelope, error) {
+	payload, err := codec.DecodePayload(message.Payload)
+	if err != nil {
+		return TaskEnvelope{}, err
+	}
+
+	return NewTaskEnvelope(TaskEnvelopeInput{
+		ID:          TaskID(message.ID),
+		Name:        TaskName(message.Name),
+		Queue:       QueueName(message.Queue),
+		Args:        payload.Args(),
+		Kwargs:      payload.Kwargs(),
+		Metadata:    message.Metadata,
+		Timing:      message.Timing,
+		Priority:    message.Priority,
+		RetryPolicy: message.RetryPolicy,
+		CreatedAt:   message.CreatedAt,
+		Attempt:     message.Attempt,
+	})
+}
+
 func cloneBytes(values []byte) []byte {
 	if len(values) == 0 {
 		return nil
