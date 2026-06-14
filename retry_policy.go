@@ -37,3 +37,25 @@ func (p RetryPolicy) Validate() error {
 
 	return nil
 }
+
+// DelayForAttempt returns the delay before retrying after the given failed attempt.
+func (p RetryPolicy) DelayForAttempt(attempt int) time.Duration {
+	if attempt <= 0 || p.Backoff <= 0 {
+		return 0
+	}
+
+	delay := p.Backoff
+	for range attempt - 1 {
+		next := delay * 2
+		if p.MaxBackoff > 0 && next > p.MaxBackoff {
+			return p.MaxBackoff
+		}
+		delay = next
+	}
+
+	if p.MaxBackoff > 0 && delay > p.MaxBackoff {
+		return p.MaxBackoff
+	}
+
+	return delay
+}

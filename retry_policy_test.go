@@ -38,3 +38,23 @@ func TestRetryPolicyValidateRejectsInvalidBackoff(t *testing.T) {
 		t.Fatalf("Validate error = %v, want ErrInvalidRetryPolicy", err)
 	}
 }
+
+func TestRetryPolicyDelayForAttemptUsesExponentialBackoff(t *testing.T) {
+	policy := RetryPolicy{
+		MaxAttempts: 4,
+		Backoff:     2 * time.Second,
+		MaxBackoff:  5 * time.Second,
+	}
+
+	tests := map[int]time.Duration{
+		1: 2 * time.Second,
+		2: 4 * time.Second,
+		3: 5 * time.Second,
+	}
+
+	for attempt, want := range tests {
+		if got := policy.DelayForAttempt(attempt); got != want {
+			t.Fatalf("DelayForAttempt(%d) = %s, want %s", attempt, got, want)
+		}
+	}
+}
