@@ -525,7 +525,7 @@ func TestWorkerDeadLettersMalformedPayload(t *testing.T) {
 	message := backend.ReadyMessage{
 		StreamID: "1-0",
 		Message: task.TaskMessage{
-			ID:          "task_01JZ9Z8Z8Z8Z8Z8Z8Z8Z8Z8Z8Z",
+			ID:          "4ac0a01f-1b16-4330-b3e7-e99826eacb1a",
 			Name:        "email.send",
 			Queue:       "billing",
 			Payload:     []byte("{"),

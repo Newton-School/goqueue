@@ -227,11 +227,7 @@ func (w *Worker) moveDueScheduled(ctx context.Context) error {
 func (w *Worker) processMessage(ctx context.Context, message backend.ReadyMessage) error {
 	envelope, err := task.TaskMessageToEnvelope(message.Message, w.codec)
 	if err != nil {
-		if err := w.ack(ctx, message.StreamID); err != nil {
-			return err
-		}
-
-		return fmt.Errorf("goqueue worker: deserialize task message: %w", err)
+		return w.deadLetterMalformedMessage(ctx, message, fmt.Errorf("goqueue worker: deserialize task message: %w", err))
 	}
 
 	if err := w.writeState(ctx, envelope.ID, task.TaskReceived, ""); err != nil {

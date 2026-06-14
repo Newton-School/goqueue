@@ -2,10 +2,34 @@ package worker
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Newton-School/goqueue/backend"
 	"github.com/Newton-School/goqueue/task"
 )
+
+func (w *Worker) deadLetterMalformedMessage(ctx context.Context, message backend.ReadyMessage, cause error) error {
+	envelope, err := task.NewTaskEnvelope(task.TaskEnvelopeInput{
+		ID:          task.TaskID(message.Message.ID),
+		Name:        task.TaskName(message.Message.Name),
+		Queue:       task.QueueName(message.Message.Queue),
+		Metadata:    message.Message.Metadata,
+		Timing:      message.Message.Timing,
+		Priority:    message.Message.Priority,
+		RetryPolicy: message.Message.RetryPolicy,
+		CreatedAt:   message.Message.CreatedAt,
+		Attempt:     message.Message.Attempt,
+	})
+	if err != nil {
+		return fmt.Errorf("goqueue worker: build malformed message envelope: %w", err)
+	}
+
+	result := task.FailedResult(cause)
+	if err := w.deadLetterTask(ctx, message.StreamID, envelope, message, task.FailureMalformedMessage, result); err != nil {
+		return err
+	}
+	return w.ack(ctx, message.StreamID)
+}
 
 func (w *Worker) deadLetterTask(
 	ctx context.Context,
