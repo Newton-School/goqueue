@@ -554,6 +554,10 @@ func TestWorkerDeadLettersUnknownTask(t *testing.T) {
 	if lastState.State != task.TaskDeadLettered {
 		t.Fatalf("final state = %q, want %q", lastState.State, task.TaskDeadLettered)
 	}
+	lastResult := backend.resultRequests[len(backend.resultRequests)-1].Result
+	if lastResult.Metadata[task.FailureMetadataCategoryKey] != string(task.FailureUnknownTask) {
+		t.Fatalf("failure category = %q, want unknown task", lastResult.Metadata[task.FailureMetadataCategoryKey])
+	}
 }
 
 func TestWorkerMarksUnknownTaskFailedWhenDeadLetterDisabled(t *testing.T) {
