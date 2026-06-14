@@ -323,6 +323,13 @@ func TestWorkerDoesNotRetryWhenMaxAttemptsReached(t *testing.T) {
 	if lastState.State != task.TaskDeadLettered {
 		t.Fatalf("final state = %q, want %q", lastState.State, task.TaskDeadLettered)
 	}
+	lastResult := backend.resultRequests[len(backend.resultRequests)-1].Result
+	if lastResult.Metadata[task.FailureMetadataCategoryKey] != string(task.FailureRetryExhausted) {
+		t.Fatalf("failure category = %q, want retry exhausted", lastResult.Metadata[task.FailureMetadataCategoryKey])
+	}
+	if lastResult.Metadata[task.FailureMetadataDeadLetteredKey] != "true" {
+		t.Fatalf("dead lettered = %q, want true", lastResult.Metadata[task.FailureMetadataDeadLetteredKey])
+	}
 }
 
 func TestWorkerDeadLettersRetryScheduleFailure(t *testing.T) {
