@@ -68,11 +68,11 @@
 - Modify: `redisbackend/stream_parser.go`
 - Modify: `redisbackend/stream_parser_test.go`
 
-- [ ] Implement `ClaimStaleReady` using Redis `XAUTOCLAIM`.
-- [ ] Parse claimed messages through existing ready-message parsing.
-- [ ] Validate min-idle, count, and start-id behavior.
-- [ ] Verify with `go test ./redisbackend`.
-- [ ] Commit each recovery behavior.
+- [x] Implement `ClaimStaleReady` using Redis `XAUTOCLAIM`.
+- [x] Parse claimed messages through existing ready-message parsing.
+- [x] Validate min-idle, count, and start-id behavior.
+- [x] Verify with `go test ./redisbackend`.
+- [x] Commit each recovery behavior.
 
 ### Task 5: Worker Reliability Policy
 
