@@ -14,3 +14,13 @@ func TestReadyEnqueueScriptStoresMessageAndAddsStreamEntry(t *testing.T) {
 		}
 	}
 }
+
+func TestScheduledEnqueueScriptStoresMessageAndAddsSortedSetMember(t *testing.T) {
+	script := scheduledEnqueueScript()
+
+	for _, fragment := range []string{"redis.call('SET'", "redis.call('ZADD'", "ARGV[3]", "ARGV[4]"} {
+		if !strings.Contains(script, fragment) {
+			t.Fatalf("scheduled script missing %q in %s", fragment, script)
+		}
+	}
+}
