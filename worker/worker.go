@@ -297,8 +297,9 @@ func (w *Worker) processMessage(ctx context.Context, message backend.ReadyMessag
 func (w *Worker) retryTask(ctx context.Context, streamID string, envelope task.TaskEnvelope, result task.TaskResult) error {
 	nextAttempt := envelope.Attempt + 1
 	nextDelay := envelope.RetryPolicy.DelayForAttempt(nextAttempt)
+	nextRetryAt := w.now().Add(nextDelay)
 
-	if !envelope.Timing.ExpiresAt.IsZero() && w.now().Add(nextDelay).After(envelope.Timing.ExpiresAt) {
+	if !envelope.Timing.ExpiresAt.IsZero() && nextRetryAt.After(envelope.Timing.ExpiresAt) {
 		result = task.FailedResult(fmt.Errorf("task expired before retry"))
 		if err := w.writeState(ctx, envelope.ID, task.TaskExpired, result.Error); err != nil {
 			return err
@@ -317,7 +318,7 @@ func (w *Worker) retryTask(ctx context.Context, streamID string, envelope task.T
 		Kwargs:   envelope.Payload.Kwargs(),
 		Metadata: envelope.Metadata.Values(),
 		Timing: task.TaskTiming{
-			ETA:       w.now().Add(nextDelay),
+			ETA:       nextRetryAt,
 			ExpiresAt: envelope.Timing.ExpiresAt,
 		},
 		Priority:    envelope.Priority,
@@ -336,6 +337,14 @@ func (w *Worker) retryTask(ctx context.Context, streamID string, envelope task.T
 	if err := w.writeState(ctx, envelope.ID, task.TaskRetrying, result.Error); err != nil {
 		return err
 	}
+	result.Metadata = task.MergeFailureMetadata(result.Metadata, task.FailureMetadata{
+		Category:    task.FailureExecution,
+		Attempt:     envelope.Attempt,
+		MaxAttempts: envelope.RetryPolicy.MaxAttempts,
+		Retryable:   true,
+		NextRetryAt: nextRetryAt,
+		LastError:   result.Error,
+	})
 	if err := w.saveResult(ctx, envelope.ID, result); err != nil {
 		return err
 	}
