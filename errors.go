@@ -17,4 +17,7 @@ var (
 
 	// ErrInvalidTaskName is returned when a task name is empty or unsafe.
 	ErrInvalidTaskName = errors.New("goqueue: invalid task name")
+
+	// ErrInvalidTaskID is returned when a task ID is not a UUID string.
+	ErrInvalidTaskID = errors.New("goqueue: invalid task id")
 )
