@@ -226,6 +226,16 @@ func TestWorkerRetriesFailedTask(t *testing.T) {
 	if lastState.State != task.TaskRetrying {
 		t.Fatalf("final state = %q, want %q", lastState.State, task.TaskRetrying)
 	}
+	lastResult := backend.resultRequests[len(backend.resultRequests)-1].Result
+	if lastResult.Metadata[task.FailureMetadataCategoryKey] != string(task.FailureExecution) {
+		t.Fatalf("failure category = %q, want execution", lastResult.Metadata[task.FailureMetadataCategoryKey])
+	}
+	if lastResult.Metadata[task.FailureMetadataRetryableKey] != "true" {
+		t.Fatalf("retryable = %q, want true", lastResult.Metadata[task.FailureMetadataRetryableKey])
+	}
+	if lastResult.Metadata[task.FailureMetadataNextRetryAtKey] != now.Add(10*time.Second).Format(time.RFC3339Nano) {
+		t.Fatalf("next retry = %q, want scheduled timestamp", lastResult.Metadata[task.FailureMetadataNextRetryAtKey])
+	}
 }
 
 func TestWorkerDoesNotRetryWhenMaxAttemptsReached(t *testing.T) {
