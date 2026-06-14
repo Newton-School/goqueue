@@ -54,3 +54,19 @@ func TestDeadLetterCodecRejectsMissingMessage(t *testing.T) {
 		t.Fatalf("decode error = %v, want ErrInvalidRedisMessage", err)
 	}
 }
+
+func TestDeadLetterCodecRejectsInvalidTimestamp(t *testing.T) {
+	message, err := (messageCodec{}).encode(testTaskMessage(t))
+	if err != nil {
+		t.Fatalf("encode returned error: %v", err)
+	}
+
+	_, err = (deadLetterCodec{}).decode("2-0", map[string]any{
+		"message":   string(message),
+		"reason":    string(task.FailureExecution),
+		"failed_at": "not-a-time",
+	})
+	if !errors.Is(err, ErrInvalidRedisMessage) {
+		t.Fatalf("decode error = %v, want ErrInvalidRedisMessage", err)
+	}
+}
