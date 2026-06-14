@@ -156,7 +156,7 @@ if err != nil {
 defer backend.Close()
 ```
 
-Phase 4 and earlier backend capabilities:
+Phase 5 and earlier backend capabilities:
 
 - Ready queues backed by Redis Streams.
 - Scheduled queues backed by Redis sorted sets.
