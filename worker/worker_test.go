@@ -874,6 +874,38 @@ func TestWorkerReturnsPendingRecoveryError(t *testing.T) {
 	}
 }
 
+func TestWorkerDoesNotClaimPendingWhenRecoveryDisabled(t *testing.T) {
+	registry := task.NewTaskRegistry()
+	ctx, cancel := context.WithCancel(context.Background())
+	backend := &fakeBackend{
+		claimStaleReadyFn: func(context.Context, backend.ClaimStaleReadyRequest) ([]backend.ReadyMessage, error) {
+			t.Fatal("ClaimStaleReady should not run")
+			return nil, nil
+		},
+		readReadyFn: func(context.Context, backend.ReadReadyRequest) ([]backend.ReadyMessage, error) {
+			cancel()
+			return nil, nil
+		},
+	}
+
+	worker, err := NewWorker(
+		backend,
+		registry,
+		WithWorkerGroup("workers"),
+		WithWorkerConsumer("pod-1"),
+		WithWorkerBlock(0),
+		WithWorkerIdleDelay(0),
+		WithWorkerMoveDueEnabled(false),
+	)
+	if err != nil {
+		t.Fatalf("NewWorker returned error: %v", err)
+	}
+
+	if err := worker.Start(ctx); err != nil {
+		t.Fatalf("Start returned error: %v", err)
+	}
+}
+
 type fakeBackend struct {
 	mu                       sync.Mutex
 	ensureGroupRequests      []backend.ConsumerGroupRequest
