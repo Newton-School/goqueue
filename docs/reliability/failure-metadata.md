@@ -10,3 +10,9 @@ Metadata keys use the `goqueue.failure.*` prefix. Public constants include
 `FailureMetadataMaxAttemptsKey`, `FailureMetadataRetryableKey`,
 `FailureMetadataNextRetryAtKey`, `FailureMetadataDeadLetteredKey`,
 `FailureMetadataDeadLetteredAtKey`, and `FailureMetadataLastErrorKey`.
+
+## Categories
+
+Failure categories are stable public constants: `FailureExecution`,
+`FailureMalformedMessage`, `FailureUnknownTask`, `FailureExpired`,
+`FailureRetryExhausted`, and `FailureRetryScheduleFailed`.
