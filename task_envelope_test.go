@@ -77,3 +77,28 @@ func TestNewTaskEnvelopeRejectsInvalidRetryPolicy(t *testing.T) {
 		t.Fatalf("NewTaskEnvelope error = %v, want ErrInvalidRetryPolicy", err)
 	}
 }
+
+func TestTaskEnvelopeCloneCopiesPayloadAndMetadata(t *testing.T) {
+	envelope, err := NewTaskEnvelope(TaskEnvelopeInput{
+		Name:     "email.send",
+		Queue:    "default",
+		Args:     []any{"welcome"},
+		Metadata: map[string]string{"trace_id": "trace-1"},
+	})
+	if err != nil {
+		t.Fatalf("NewTaskEnvelope returned error: %v", err)
+	}
+
+	cloned := envelope.Clone()
+	clonedArgs := cloned.Payload.Args()
+	clonedArgs[0] = "mutated"
+	clonedMetadata := cloned.Metadata.Values()
+	clonedMetadata["trace_id"] = "trace-2"
+
+	if got := envelope.Payload.Args()[0]; got != "welcome" {
+		t.Fatalf("original payload arg = %v, want welcome", got)
+	}
+	if got := envelope.Metadata.Values()["trace_id"]; got != "trace-1" {
+		t.Fatalf("original metadata trace_id = %q, want trace-1", got)
+	}
+}

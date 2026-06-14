@@ -105,3 +105,10 @@ func (e TaskEnvelope) Validate() error {
 
 	return nil
 }
+
+// Clone returns a copy of the envelope with copied mutable payload and metadata.
+func (e TaskEnvelope) Clone() TaskEnvelope {
+	e.Payload = NewTaskPayload(e.Payload.Args(), e.Payload.Kwargs())
+	e.Metadata = NewTaskMetadata(e.Metadata.Values())
+	return e
+}
