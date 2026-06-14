@@ -752,6 +752,10 @@ func TestWorkerDeadLettersMalformedPayload(t *testing.T) {
 	if backend.deadLetterRequests[0].Reason != task.FailureMalformedMessage {
 		t.Fatalf("dead letter reason = %q, want %q", backend.deadLetterRequests[0].Reason, task.FailureMalformedMessage)
 	}
+	lastResult := backend.resultRequests[len(backend.resultRequests)-1].Result
+	if lastResult.Metadata[task.FailureMetadataCategoryKey] != string(task.FailureMalformedMessage) {
+		t.Fatalf("failure category = %q, want malformed message", lastResult.Metadata[task.FailureMetadataCategoryKey])
+	}
 }
 
 func TestWorkerProcessesClaimedPendingTask(t *testing.T) {
