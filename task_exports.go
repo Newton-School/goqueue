@@ -230,6 +230,26 @@ func WithWorkerIdleDelay(delay time.Duration) WorkerOption {
 	return worker.WithWorkerIdleDelay(delay)
 }
 
+func WithWorkerDeadLetterEnabled(enabled bool) WorkerOption {
+	return worker.WithWorkerDeadLetterEnabled(enabled)
+}
+
+func WithWorkerPendingRecoveryEnabled(enabled bool) WorkerOption {
+	return worker.WithWorkerPendingRecoveryEnabled(enabled)
+}
+
+func WithWorkerPendingMinIdle(minIdle time.Duration) WorkerOption {
+	return worker.WithWorkerPendingMinIdle(minIdle)
+}
+
+func WithWorkerPendingClaimBatch(count int64) WorkerOption {
+	return worker.WithWorkerPendingClaimBatch(count)
+}
+
+func WithWorkerPendingClaimInterval(interval time.Duration) WorkerOption {
+	return worker.WithWorkerPendingClaimInterval(interval)
+}
+
 func WithWorkerNow(now func() time.Time) WorkerOption {
 	return worker.WithWorkerNow(now)
 }
