@@ -9,9 +9,10 @@ type QueueStatsRequest struct {
 
 // QueueStats reports storage counts for a queue.
 type QueueStats struct {
-	Queue          task.QueueName
-	ReadyCount     int64
-	ScheduledCount int64
+	Queue           task.QueueName
+	ReadyCount      int64
+	ScheduledCount  int64
+	DeadLetterCount int64
 }
 
 // Validate verifies the stats request.
