@@ -99,11 +99,11 @@
 - Modify: `doc.go`
 - Modify: `docs/superpowers/plans/2026-06-14-phase-5-reliability.md`
 
-- [ ] Re-export public reliability options and metadata types.
-- [ ] Document Phase 5 completion and operational semantics.
-- [ ] Mark this plan complete.
-- [ ] Verify with `go test ./...` and `go vet ./...`.
-- [ ] Commit final docs and verification.
+- [x] Re-export public reliability options and metadata types.
+- [x] Document Phase 5 completion and operational semantics.
+- [x] Mark this plan complete.
+- [x] Verify with `go test ./...` and `go vet ./...`.
+- [x] Commit final docs and verification.
 
 ### Acceptance Criteria
 
