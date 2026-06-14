@@ -24,3 +24,13 @@ func TestScheduledEnqueueScriptStoresMessageAndAddsSortedSetMember(t *testing.T)
 		}
 	}
 }
+
+func TestMoveDueScheduledScriptMovesDueTasks(t *testing.T) {
+	script := moveDueScheduledScript()
+
+	for _, fragment := range []string{"ZRANGEBYSCORE", "redis.call('GET'", "redis.call('XADD'", "redis.call('ZREM'"} {
+		if !strings.Contains(script, fragment) {
+			t.Fatalf("move due script missing %q in %s", fragment, script)
+		}
+	}
+}

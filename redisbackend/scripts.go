@@ -14,3 +14,23 @@ redis.call('ZADD', KEYS[2], ARGV[3], ARGV[4])
 return ARGV[4]
 `
 }
+
+func moveDueScheduledScript() string {
+	return `
+local ids = redis.call('ZRANGEBYSCORE', KEYS[1], '-inf', ARGV[1], 'LIMIT', 0, ARGV[2])
+local moved = {}
+for _, id in ipairs(ids) do
+  local messageKey = ARGV[3] .. id .. ':message'
+  local message = redis.call('GET', messageKey)
+  if message then
+    local streamID = redis.call('XADD', KEYS[2], '*', 'id', id, 'message', message)
+    redis.call('ZREM', KEYS[1], id)
+    table.insert(moved, streamID)
+    table.insert(moved, message)
+  else
+    redis.call('ZREM', KEYS[1], id)
+  end
+end
+return moved
+`
+}
