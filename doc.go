@@ -2,6 +2,7 @@
 //
 // The root package is the public SDK facade. Task model implementation lives
 // in the task subpackage and is re-exported here for the convenient goqueue.X
-// API. Redis producer APIs are available on top of this package boundary and a
-// dedicated redisbackend package powers durable queue storage.
+// API. Redis producer and worker APIs are available on top of this package
+// boundary, while redisbackend powers durable queue storage, retries,
+// dead-letter queues, and pending recovery.
 package goqueue
