@@ -22,6 +22,9 @@ func (noopBackend) EnqueueReady(context.Context, EnqueueRequest) (EnqueueRespons
 func (noopBackend) EnqueueScheduled(context.Context, EnqueueRequest) (EnqueueResponse, error) {
 	return EnqueueResponse{}, nil
 }
+func (noopBackend) MoveDueScheduled(context.Context, MoveDueScheduledRequest) ([]MovedScheduledMessage, error) {
+	return nil, nil
+}
 func (noopBackend) ReadReady(context.Context, ReadReadyRequest) ([]ReadyMessage, error) {
 	return nil, nil
 }
