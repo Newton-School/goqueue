@@ -384,6 +384,77 @@ func TestWorkerSkipsExpiredTask(t *testing.T) {
 	}
 }
 
+func TestWorkerDeadLettersUnknownTask(t *testing.T) {
+	registry := task.NewTaskRegistry()
+	now := time.Date(2026, time.June, 14, 9, 0, 0, 0, time.UTC)
+	message := readyMessage(t, task.JSONPayloadCodec{}, testEnvelopeInput{
+		name:      "email.missing",
+		queue:     "billing",
+		createdAt: now,
+	})
+	ackCh := make(chan struct{}, 1)
+
+	backend := &fakeBackend{
+		readReadyFn: makeReadOnce(message),
+		ackFn: func(_ context.Context, _ backend.AckRequest) error {
+			select {
+			case ackCh <- struct{}{}:
+			default:
+			}
+			return nil
+		},
+	}
+
+	worker, err := NewWorker(
+		backend,
+		registry,
+		WithWorkerGroup("workers"),
+		WithWorkerConsumer("pod-1"),
+		WithWorkerReadBatch(1),
+		WithWorkerBlock(0),
+		WithWorkerIdleDelay(1*time.Millisecond),
+		WithWorkerNow(func() time.Time { return now }),
+		WithWorkerMoveDueEnabled(false),
+		WithWorkerQueue("billing"),
+	)
+	if err != nil {
+		t.Fatalf("NewWorker returned error: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- worker.Start(ctx)
+	}()
+
+	select {
+	case <-ackCh:
+	case <-time.After(2 * time.Second):
+		t.Fatal("task was not acknowledged")
+	}
+	cancel()
+
+	select {
+	case gotErr := <-errCh:
+		if gotErr != nil {
+			t.Fatalf("Start returned error: %v", gotErr)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("Start did not return")
+	}
+
+	if len(backend.deadLetterRequests) != 1 {
+		t.Fatalf("dead letter requests = %d, want 1", len(backend.deadLetterRequests))
+	}
+	if backend.deadLetterRequests[0].Reason != task.FailureUnknownTask {
+		t.Fatalf("dead letter reason = %q, want %q", backend.deadLetterRequests[0].Reason, task.FailureUnknownTask)
+	}
+	lastState := backend.setStateRequests[len(backend.setStateRequests)-1]
+	if lastState.State != task.TaskDeadLettered {
+		t.Fatalf("final state = %q, want %q", lastState.State, task.TaskDeadLettered)
+	}
+}
+
 type fakeBackend struct {
 	mu                       sync.Mutex
 	ensureGroupRequests      []backend.ConsumerGroupRequest
@@ -392,6 +463,7 @@ type fakeBackend struct {
 	setStateRequests         []backend.TaskStateRecord
 	resultRequests           []backend.TaskResultRecord
 	ackRequests              []backend.AckRequest
+	deadLetterRequests       []backend.DeadLetterRequest
 	enqueueScheduledRequests []backend.EnqueueRequest
 	ensureConsumerGroupErr   error
 	moveDueScheduledErr      error
