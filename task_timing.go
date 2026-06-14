@@ -11,6 +11,15 @@ type TaskTiming struct {
 	ExpiresAt time.Time
 }
 
+// TaskTimingFromCountdown returns timing with ETA set relative to now.
+func TaskTimingFromCountdown(now time.Time, countdown time.Duration) (TaskTiming, error) {
+	if countdown < 0 {
+		return TaskTiming{}, fmt.Errorf("%w: countdown cannot be negative", ErrInvalidTaskTiming)
+	}
+
+	return TaskTiming{ETA: now.Add(countdown)}, nil
+}
+
 // Scheduled reports whether the task has a future execution timestamp.
 func (t TaskTiming) Scheduled() bool {
 	return !t.ETA.IsZero()
