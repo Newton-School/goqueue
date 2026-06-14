@@ -25,6 +25,9 @@ func (noopBackend) EnqueueScheduled(context.Context, EnqueueRequest) (EnqueueRes
 func (noopBackend) MoveDueScheduled(context.Context, MoveDueScheduledRequest) ([]MovedScheduledMessage, error) {
 	return nil, nil
 }
+func (noopBackend) EnsureConsumerGroup(context.Context, ConsumerGroupRequest) error {
+	return nil
+}
 func (noopBackend) ReadReady(context.Context, ReadReadyRequest) ([]ReadyMessage, error) {
 	return nil, nil
 }

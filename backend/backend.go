@@ -11,6 +11,7 @@ type QueueBackend interface {
 	EnqueueReady(context.Context, EnqueueRequest) (EnqueueResponse, error)
 	EnqueueScheduled(context.Context, EnqueueRequest) (EnqueueResponse, error)
 	MoveDueScheduled(context.Context, MoveDueScheduledRequest) ([]MovedScheduledMessage, error)
+	EnsureConsumerGroup(context.Context, ConsumerGroupRequest) error
 	ReadReady(context.Context, ReadReadyRequest) ([]ReadyMessage, error)
 	Ack(context.Context, AckRequest) error
 	SetTaskState(context.Context, TaskStateRecord) error
