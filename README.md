@@ -162,6 +162,7 @@ Phase 5 and earlier backend capabilities:
 - Scheduled queues backed by Redis sorted sets.
 - Atomic Lua scripts for ready enqueue, scheduled enqueue, and due-task moves.
 - Consumer group creation, stream reads, and acknowledgements.
+- Dead-letter streams for unrecoverable worker failures.
 - Task state and task result storage with TTL-ready APIs.
 - Queue stats for ready and scheduled counts.
 
