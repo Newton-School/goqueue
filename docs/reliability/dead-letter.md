@@ -19,3 +19,9 @@ DLQ record for inspection.
 Workers acknowledge a stream message only after state, result, retry scheduling,
 or DLQ persistence succeeds. If DLQ persistence fails, the message remains
 pending and can be recovered by another worker.
+
+## Redis Storage
+
+Redis backends store DLQ records in `namespace:queue:<queue>:dead` streams. Each
+record contains the task message, reason, error, source stream id, group,
+consumer, and failure timestamp.
