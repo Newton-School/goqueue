@@ -29,4 +29,7 @@ var (
 
 	// ErrInvalidRetryPolicy is returned when retry settings are unsafe.
 	ErrInvalidRetryPolicy = errors.New("goqueue: invalid retry policy")
+
+	// ErrInvalidTaskTiming is returned when task scheduling fields conflict.
+	ErrInvalidTaskTiming = errors.New("goqueue: invalid task timing")
 )
