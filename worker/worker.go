@@ -366,8 +366,12 @@ func (w *Worker) retryTask(ctx context.Context, streamID string, envelope task.T
 		return err
 	}
 	if _, err := w.backend.EnqueueScheduled(ctx, backend.EnqueueRequest{Message: retryMessage}); err != nil {
-		if failedErr := w.writeState(ctx, envelope.ID, task.TaskFailed, fmt.Sprintf("retry schedule failed: %v", err)); failedErr != nil {
-			return fmt.Errorf("goqueue worker: retry schedule failed: %w; state write failed: %v", err, failedErr)
+		failedResult := task.FailedResult(fmt.Errorf("retry schedule failed: %w", err))
+		if deadLetterErr := w.deadLetterTask(ctx, streamID, envelope, backend.ReadyMessage{
+			StreamID: streamID,
+			Message:  retryMessage,
+		}, task.FailureRetryScheduleFailed, failedResult); deadLetterErr != nil {
+			return fmt.Errorf("goqueue worker: retry schedule failed: %w; dead letter failed: %v", err, deadLetterErr)
 		}
 		return fmt.Errorf("goqueue worker: retry schedule failed: %w", err)
 	}
