@@ -60,8 +60,8 @@
 - [x] Add root facade docs for Redis backend.
 - [x] Update README package layout.
 - [x] Update `.env.example` comments.
-- [ ] Run full verification.
-- [ ] Run race tests.
+- [x] Run full verification.
+- [x] Run race tests.
 
 ### Acceptance Criteria
 
