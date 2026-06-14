@@ -238,7 +238,7 @@ func (w *Worker) processMessage(ctx context.Context, message backend.ReadyMessag
 		return err
 	}
 
-	expired, err := w.checkExpired(ctx, envelope)
+	expired, err := w.checkExpired(ctx, envelope, message)
 	if err != nil {
 		return err
 	}
@@ -353,7 +353,7 @@ func (w *Worker) retryTask(ctx context.Context, streamID string, envelope task.T
 	return w.ack(ctx, streamID)
 }
 
-func (w *Worker) checkExpired(ctx context.Context, envelope task.TaskEnvelope) (bool, error) {
+func (w *Worker) checkExpired(ctx context.Context, envelope task.TaskEnvelope, message backend.ReadyMessage) (bool, error) {
 	if envelope.Timing.ExpiresAt.IsZero() {
 		return false, nil
 	}
@@ -363,6 +363,10 @@ func (w *Worker) checkExpired(ctx context.Context, envelope task.TaskEnvelope) (
 	}
 
 	result := task.FailedResult(fmt.Errorf("task expired"))
+	result, err := w.recordDeadLetter(ctx, message.StreamID, envelope, message, task.FailureExpired, result)
+	if err != nil {
+		return false, err
+	}
 	if err := w.writeState(ctx, envelope.ID, task.TaskExpired, result.Error); err != nil {
 		return false, err
 	}

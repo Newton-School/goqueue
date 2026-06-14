@@ -19,6 +19,28 @@ func (w *Worker) deadLetterTask(
 		return nil
 	}
 
+	result, err := w.recordDeadLetter(ctx, streamID, envelope, message, reason, result)
+	if err != nil {
+		return err
+	}
+	if err := w.writeState(ctx, envelope.ID, task.TaskDeadLettered, result.Error); err != nil {
+		return err
+	}
+	return w.saveResult(ctx, envelope.ID, result)
+}
+
+func (w *Worker) recordDeadLetter(
+	ctx context.Context,
+	streamID string,
+	envelope task.TaskEnvelope,
+	message backend.ReadyMessage,
+	reason task.FailureCategory,
+	result task.TaskResult,
+) (task.TaskResult, error) {
+	if !w.deadLetterEnabled {
+		return result, nil
+	}
+
 	_, err := w.backend.EnqueueDeadLetter(ctx, backend.DeadLetterRequest{
 		Message:        message.Message,
 		Reason:         reason,
@@ -29,7 +51,7 @@ func (w *Worker) deadLetterTask(
 		FailedAt:       w.now(),
 	})
 	if err != nil {
-		return err
+		return task.TaskResult{}, err
 	}
 
 	result.Metadata = task.MergeFailureMetadata(result.Metadata, task.FailureMetadata{
@@ -41,8 +63,5 @@ func (w *Worker) deadLetterTask(
 		DeadLetteredAt: w.now(),
 		LastError:      result.Error,
 	})
-	if err := w.writeState(ctx, envelope.ID, task.TaskDeadLettered, result.Error); err != nil {
-		return err
-	}
-	return w.saveResult(ctx, envelope.ID, result)
+	return result, nil
 }
