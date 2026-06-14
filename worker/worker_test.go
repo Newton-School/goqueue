@@ -303,9 +303,15 @@ func TestWorkerDoesNotRetryWhenMaxAttemptsReached(t *testing.T) {
 	if len(backend.enqueueScheduledRequests) != 0 {
 		t.Fatalf("scheduled calls = %d, want 0", len(backend.enqueueScheduledRequests))
 	}
+	if len(backend.deadLetterRequests) != 1 {
+		t.Fatalf("dead letter requests = %d, want 1", len(backend.deadLetterRequests))
+	}
+	if backend.deadLetterRequests[0].Reason != task.FailureRetryExhausted {
+		t.Fatalf("dead letter reason = %q, want %q", backend.deadLetterRequests[0].Reason, task.FailureRetryExhausted)
+	}
 	lastState := backend.setStateRequests[len(backend.setStateRequests)-1]
-	if lastState.State != task.TaskFailed {
-		t.Fatalf("final state = %q, want %q", lastState.State, task.TaskFailed)
+	if lastState.State != task.TaskDeadLettered {
+		t.Fatalf("final state = %q, want %q", lastState.State, task.TaskDeadLettered)
 	}
 }
 
