@@ -69,3 +69,24 @@ func TestFailureMetadataToMapOmitsEmptyOptionalTimestamps(t *testing.T) {
 		t.Fatalf("dead lettered = %q, want false", values[FailureMetadataDeadLetteredKey])
 	}
 }
+
+func TestMergeFailureMetadataPreservesExistingMetadata(t *testing.T) {
+	values := MergeFailureMetadata(
+		map[string]string{"custom": "value"},
+		FailureMetadata{
+			Category:  FailureUnknownTask,
+			Attempt:   1,
+			LastError: "missing handler",
+		},
+	)
+
+	if values["custom"] != "value" {
+		t.Fatalf("custom metadata = %q, want value", values["custom"])
+	}
+	if values[FailureMetadataCategoryKey] != string(FailureUnknownTask) {
+		t.Fatalf("category = %q, want unknown task", values[FailureMetadataCategoryKey])
+	}
+	if values[FailureMetadataLastErrorKey] != "missing handler" {
+		t.Fatalf("last error = %q, want missing handler", values[FailureMetadataLastErrorKey])
+	}
+}
