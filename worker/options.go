@@ -10,17 +10,22 @@ import (
 
 // WorkerConfig holds worker defaults.
 type WorkerConfig struct {
-	queue          task.QueueName
-	group          string
-	consumer       string
-	codec          task.PayloadCodec
-	concurrency    int
-	readBatch      int64
-	block          time.Duration
-	moveDueEnabled bool
-	moveDueLimit   int64
-	idleDelay      time.Duration
-	now            func() time.Time
+	queue                  task.QueueName
+	group                  string
+	consumer               string
+	codec                  task.PayloadCodec
+	concurrency            int
+	readBatch              int64
+	block                  time.Duration
+	moveDueEnabled         bool
+	moveDueLimit           int64
+	idleDelay              time.Duration
+	deadLetterEnabled      bool
+	pendingRecoveryEnabled bool
+	pendingMinIdle         time.Duration
+	pendingClaimBatch      int64
+	pendingClaimInterval   time.Duration
+	now                    func() time.Time
 }
 
 // WorkerOption customizes worker behavior.
@@ -28,17 +33,22 @@ type WorkerOption func(*WorkerConfig) error
 
 func defaultWorkerConfig() WorkerConfig {
 	return WorkerConfig{
-		queue:          "default",
-		group:          "goqueue",
-		consumer:       "worker",
-		codec:          task.JSONPayloadCodec{},
-		concurrency:    1,
-		readBatch:      1,
-		block:          250 * time.Millisecond,
-		moveDueEnabled: true,
-		moveDueLimit:   100,
-		idleDelay:      50 * time.Millisecond,
-		now:            time.Now().UTC,
+		queue:                  "default",
+		group:                  "goqueue",
+		consumer:               "worker",
+		codec:                  task.JSONPayloadCodec{},
+		concurrency:            1,
+		readBatch:              1,
+		block:                  250 * time.Millisecond,
+		moveDueEnabled:         true,
+		moveDueLimit:           100,
+		idleDelay:              50 * time.Millisecond,
+		deadLetterEnabled:      true,
+		pendingRecoveryEnabled: false,
+		pendingMinIdle:         5 * time.Minute,
+		pendingClaimBatch:      100,
+		pendingClaimInterval:   time.Minute,
+		now:                    time.Now().UTC,
 	}
 }
 
@@ -156,6 +166,58 @@ func WithWorkerIdleDelay(delay time.Duration) WorkerOption {
 		}
 
 		config.idleDelay = delay
+		return nil
+	}
+}
+
+// WithWorkerDeadLetterEnabled toggles dead-letter persistence for terminal failures.
+func WithWorkerDeadLetterEnabled(enabled bool) WorkerOption {
+	return func(config *WorkerConfig) error {
+		config.deadLetterEnabled = enabled
+		return nil
+	}
+}
+
+// WithWorkerPendingRecoveryEnabled toggles stale pending message recovery.
+func WithWorkerPendingRecoveryEnabled(enabled bool) WorkerOption {
+	return func(config *WorkerConfig) error {
+		config.pendingRecoveryEnabled = enabled
+		return nil
+	}
+}
+
+// WithWorkerPendingMinIdle sets how long a pending message must be idle before claim.
+func WithWorkerPendingMinIdle(minIdle time.Duration) WorkerOption {
+	return func(config *WorkerConfig) error {
+		if minIdle < 0 {
+			return fmt.Errorf("%w: pending min idle cannot be negative", ErrInvalidWorkerOption)
+		}
+
+		config.pendingMinIdle = minIdle
+		return nil
+	}
+}
+
+// WithWorkerPendingClaimBatch sets max stale pending messages claimed per recovery pass.
+func WithWorkerPendingClaimBatch(count int64) WorkerOption {
+	return func(config *WorkerConfig) error {
+		if count < 1 {
+			return fmt.Errorf("%w: pending claim batch must be at least 1", ErrInvalidWorkerOption)
+		}
+
+		config.pendingClaimBatch = count
+		return nil
+	}
+}
+
+// WithWorkerPendingClaimInterval sets the minimum interval between recovery passes.
+func WithWorkerPendingClaimInterval(interval time.Duration) WorkerOption {
+	return func(config *WorkerConfig) error {
+		if interval < 0 {
+			return fmt.Errorf("%w: pending claim interval cannot be negative", ErrInvalidWorkerOption)
+		}
+
+		config.pendingClaimInterval = interval
 		return nil
 	}
 }
