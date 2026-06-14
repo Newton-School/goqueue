@@ -26,4 +26,7 @@ var (
 
 	// ErrInvalidTaskState is returned when a task state is not recognized.
 	ErrInvalidTaskState = errors.New("goqueue: invalid task state")
+
+	// ErrInvalidRetryPolicy is returned when retry settings are unsafe.
+	ErrInvalidRetryPolicy = errors.New("goqueue: invalid retry policy")
 )
