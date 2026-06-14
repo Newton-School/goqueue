@@ -56,3 +56,17 @@ func TestClaimStaleReadyRequestRejectsNegativeMinIdle(t *testing.T) {
 		t.Fatal("Validate expected error for negative min idle")
 	}
 }
+
+func TestClaimStaleReadyRequestRejectsNegativeCount(t *testing.T) {
+	request := ClaimStaleReadyRequest{
+		Queue:    "default",
+		Group:    "workers",
+		Consumer: "pod-2",
+		MinIdle:  time.Minute,
+		Count:    -1,
+	}
+
+	if err := request.Validate(); err == nil {
+		t.Fatal("Validate expected error for negative count")
+	}
+}
