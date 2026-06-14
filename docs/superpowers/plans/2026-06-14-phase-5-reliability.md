@@ -111,6 +111,6 @@
 - [x] Worker never acknowledges a message before final state/result/retry/DLQ persistence succeeds.
 - [x] Worker can claim stale pending stream messages for pod-crash recovery.
 - [x] Redis queue stats include dead-letter counts.
-- Public APIs expose reliability options and failure metadata constants.
-- `go test ./...` and `go vet ./...` pass.
+- [x] Public APIs expose reliability options and failure metadata constants.
+- [x] `go test ./...` and `go vet ./...` pass.
 - Phase 5 creates at least 100 commits from the pre-phase baseline.
