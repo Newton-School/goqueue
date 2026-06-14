@@ -1,6 +1,10 @@
 package backend
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/Newton-School/goqueue/task"
+)
 
 var (
 	// ErrTaskMessageNotFound is returned when a persisted task message is missing.
@@ -17,4 +21,7 @@ var (
 
 	// ErrInvalidBackendRequest is returned when a backend request is incomplete.
 	ErrInvalidBackendRequest = errors.New("goqueue backend: invalid request")
+
+	// ErrInvalidQueueName is returned when a backend queue request has an unsafe queue name.
+	ErrInvalidQueueName = task.ErrInvalidQueueName
 )
