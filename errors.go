@@ -20,4 +20,7 @@ var (
 
 	// ErrInvalidTaskID is returned when a task ID is not a UUID string.
 	ErrInvalidTaskID = errors.New("goqueue: invalid task id")
+
+	// ErrInvalidPriority is returned when a task priority is outside the supported range.
+	ErrInvalidPriority = errors.New("goqueue: invalid priority")
 )
