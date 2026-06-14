@@ -34,3 +34,19 @@ func TestDeadLetterRequestValidateAcceptsValidRecord(t *testing.T) {
 		t.Fatalf("Validate returned error: %v", err)
 	}
 }
+
+func TestReadDeadLettersRequestValidateDefaultsCount(t *testing.T) {
+	request := ReadDeadLettersRequest{Queue: "default"}
+
+	if err := request.Validate(); err != nil {
+		t.Fatalf("Validate returned error: %v", err)
+	}
+}
+
+func TestReadDeadLettersRequestRejectsNegativeCount(t *testing.T) {
+	request := ReadDeadLettersRequest{Queue: "default", Count: -1}
+
+	if err := request.Validate(); err == nil {
+		t.Fatal("Validate expected error for negative count")
+	}
+}
