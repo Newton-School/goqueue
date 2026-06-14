@@ -272,6 +272,12 @@ func (w *Worker) processMessage(ctx context.Context, message backend.ReadyMessag
 		}
 		return nil
 	}
+	if isRetryExhausted(result.State, envelope) {
+		if err := w.deadLetterTask(ctx, message.StreamID, envelope, message, task.FailureRetryExhausted, result); err != nil {
+			return err
+		}
+		return w.ack(ctx, message.StreamID)
+	}
 
 	finalState := result.State
 	if result.State == task.TaskRetrying {
@@ -396,6 +402,13 @@ func shouldRetry(state task.TaskState, envelope task.TaskEnvelope) bool {
 	}
 
 	return true
+}
+
+func isRetryExhausted(state task.TaskState, envelope task.TaskEnvelope) bool {
+	if state != task.TaskFailed && state != task.TaskRetrying {
+		return false
+	}
+	return envelope.Attempt+1 >= envelope.RetryPolicy.MaxAttempts
 }
 
 func (w *Worker) writeState(ctx context.Context, taskID task.TaskID, state task.TaskState, msg string) error {
