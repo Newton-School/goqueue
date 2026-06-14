@@ -14,3 +14,9 @@ with `XAUTOCLAIM`.
 Use `WithWorkerPendingMinIdle`, `WithWorkerPendingClaimBatch`, and
 `WithWorkerPendingClaimInterval` to control when a pending message is considered
 stale, how many entries are claimed per pass, and how often recovery runs.
+
+## Failure Behavior
+
+If pending recovery fails, `Worker.Start` returns the claim error and does not
+fall through to fresh reads. This keeps Redis recovery failures visible to the
+owning process.
