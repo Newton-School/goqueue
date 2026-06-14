@@ -26,9 +26,15 @@ func (b *Backend) QueueStats(ctx context.Context, request backend.QueueStatsRequ
 		return backend.QueueStats{}, err
 	}
 
+	deadLetterCount, err := b.client.XLen(ctx, b.keys.deadLetterStream(request.Queue.String())).Result()
+	if err != nil {
+		return backend.QueueStats{}, err
+	}
+
 	return backend.QueueStats{
-		Queue:          request.Queue,
-		ReadyCount:     readyCount,
-		ScheduledCount: scheduledCount,
+		Queue:           request.Queue,
+		ReadyCount:      readyCount,
+		ScheduledCount:  scheduledCount,
+		DeadLetterCount: deadLetterCount,
 	}, nil
 }
