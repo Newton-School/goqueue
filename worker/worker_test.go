@@ -30,6 +30,37 @@ func TestNewWorkerRejectsInvalidOptions(t *testing.T) {
 	}
 }
 
+func TestNewWorkerCopiesReliabilityOptions(t *testing.T) {
+	worker, err := NewWorker(
+		&fakeBackend{},
+		task.NewTaskRegistry(),
+		WithWorkerDeadLetterEnabled(false),
+		WithWorkerPendingRecoveryEnabled(true),
+		WithWorkerPendingMinIdle(3*time.Minute),
+		WithWorkerPendingClaimBatch(7),
+		WithWorkerPendingClaimInterval(11*time.Second),
+	)
+	if err != nil {
+		t.Fatalf("NewWorker returned error: %v", err)
+	}
+
+	if worker.deadLetterEnabled {
+		t.Fatal("dead letter should be disabled")
+	}
+	if !worker.pendingRecoveryEnabled {
+		t.Fatal("pending recovery should be enabled")
+	}
+	if worker.pendingMinIdle != 3*time.Minute {
+		t.Fatalf("pending min idle = %v, want 3m", worker.pendingMinIdle)
+	}
+	if worker.pendingClaimBatch != 7 {
+		t.Fatalf("pending claim batch = %d, want 7", worker.pendingClaimBatch)
+	}
+	if worker.pendingClaimInterval != 11*time.Second {
+		t.Fatalf("pending claim interval = %v, want 11s", worker.pendingClaimInterval)
+	}
+}
+
 func TestWorkerExecutesSuccessfulTask(t *testing.T) {
 	registry := task.NewTaskRegistry()
 	if err := registry.Register("email.send", task.TaskHandlerFunc(func(_ task.HandlerContext, _ task.TaskPayload) (task.TaskResult, error) {
