@@ -18,3 +18,11 @@ func TestQueueStatsRequestValidateRejectsBlankQueue(t *testing.T) {
 		t.Fatalf("Validate error = %v, want ErrInvalidQueueName", err)
 	}
 }
+
+func TestQueueStatsIncludesDeadLetterCount(t *testing.T) {
+	stats := QueueStats{Queue: "default", ReadyCount: 1, ScheduledCount: 2, DeadLetterCount: 3}
+
+	if stats.DeadLetterCount != 3 {
+		t.Fatalf("DeadLetterCount = %d, want 3", stats.DeadLetterCount)
+	}
+}
