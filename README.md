@@ -130,6 +130,11 @@ func main() {
 }
 ```
 
+## Reliability
+
+Phase 5 workers use strict ack ordering: messages are acknowledged only after
+state, result, retry scheduling, or DLQ persistence succeeds.
+
 ## Redis Backend
 
 The Redis backend persists task messages and queue state.
