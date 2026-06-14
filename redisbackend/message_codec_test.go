@@ -33,3 +33,10 @@ func TestMessageCodecRejectsInvalidJSON(t *testing.T) {
 		t.Fatalf("decode error = %v, want ErrInvalidRedisMessage", err)
 	}
 }
+
+func TestMessageCodecRejectsDecodedMessageWithoutID(t *testing.T) {
+	_, err := (messageCodec{}).decode([]byte(`{"name":"email.send","queue":"default"}`))
+	if !errors.Is(err, ErrInvalidRedisMessage) {
+		t.Fatalf("decode error = %v, want ErrInvalidRedisMessage", err)
+	}
+}

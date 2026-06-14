@@ -23,6 +23,9 @@ func (messageCodec) decode(data []byte) (task.TaskMessage, error) {
 	if err := json.Unmarshal(data, &message); err != nil {
 		return task.TaskMessage{}, fmt.Errorf("%w: decode task message: %v", ErrInvalidRedisMessage, err)
 	}
+	if message.ID == "" || message.Name == "" || message.Queue == "" {
+		return task.TaskMessage{}, fmt.Errorf("%w: decoded message requires id, name, and queue", ErrInvalidRedisMessage)
+	}
 
 	return message, nil
 }
