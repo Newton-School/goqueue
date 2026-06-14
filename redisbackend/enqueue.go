@@ -43,3 +43,42 @@ func (b *Backend) EnqueueReady(ctx context.Context, request backend.EnqueueReque
 		StreamID: streamID,
 	}, nil
 }
+
+// EnqueueScheduled atomically stores a task message and schedules its task ID.
+func (b *Backend) EnqueueScheduled(ctx context.Context, request backend.EnqueueRequest) (backend.EnqueueResponse, error) {
+	if request.Message.Timing.ETA.IsZero() {
+		return backend.EnqueueResponse{}, fmt.Errorf("%w: scheduled task requires eta", ErrInvalidRedisMessage)
+	}
+	if b.client == nil {
+		return backend.EnqueueResponse{}, fmt.Errorf("%w: redis client is nil", ErrInvalidRedisOptions)
+	}
+	if err := request.Validate(); err != nil {
+		return backend.EnqueueResponse{}, err
+	}
+
+	encoded, err := (messageCodec{}).encode(request.Message)
+	if err != nil {
+		return backend.EnqueueResponse{}, err
+	}
+
+	_, err = redis.NewScript(scheduledEnqueueScript()).Run(
+		ctx,
+		b.client,
+		[]string{
+			b.keys.message(request.Message.ID),
+			b.keys.scheduledSet(request.Message.Queue),
+		},
+		string(encoded),
+		ttlSeconds(b.options.MessageTTL),
+		unixMillis(request.Message.Timing.ETA),
+		request.Message.ID,
+	).Text()
+	if err != nil {
+		return backend.EnqueueResponse{}, err
+	}
+
+	return backend.EnqueueResponse{
+		TaskID:    task.TaskID(request.Message.ID),
+		Scheduled: true,
+	}, nil
+}
