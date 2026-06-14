@@ -7,7 +7,7 @@ const (
 	MinPriority Priority = 0
 
 	// DefaultPriority is used when no task priority is provided.
-	DefaultPriority Priority = 5
+	DefaultPriority Priority = MinPriority
 
 	// MaxPriority is the highest supported task priority.
 	MaxPriority Priority = 9

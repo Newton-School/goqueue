@@ -30,3 +30,18 @@ func TestNewTaskEnvelopeAppliesDefaults(t *testing.T) {
 		t.Fatalf("CreatedAt = %s, want %s", envelope.CreatedAt, createdAt)
 	}
 }
+
+func TestNewTaskEnvelopePreservesMinimumPriority(t *testing.T) {
+	envelope, err := NewTaskEnvelope(TaskEnvelopeInput{
+		Name:     "email.send_welcome",
+		Queue:    "default",
+		Priority: MinPriority,
+	})
+	if err != nil {
+		t.Fatalf("NewTaskEnvelope returned error: %v", err)
+	}
+
+	if envelope.Priority != MinPriority {
+		t.Fatalf("Priority = %d, want %d", envelope.Priority, MinPriority)
+	}
+}
