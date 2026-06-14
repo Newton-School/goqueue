@@ -209,6 +209,8 @@ suite.
 │   Redis Streams, sorted sets, Lua scripts, task state, and result storage.
 ├── docs/superpowers/plans/
 │   Phase implementation plans and acceptance checklists.
+├── docs/reliability/
+│   Operational notes for DLQ, recovery, and failure metadata.
 └── .github/workflows/
     CI verification.
 ```
