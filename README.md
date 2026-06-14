@@ -118,6 +118,7 @@ func main() {
 		goqueue.WithWorkerGroup("workers"),
 		goqueue.WithWorkerConsumer("pod-1"),
 		goqueue.WithWorkerConcurrency(4),
+		goqueue.WithWorkerPendingRecoveryEnabled(true),
 	)
 	if err != nil {
 		log.Fatal(err)
