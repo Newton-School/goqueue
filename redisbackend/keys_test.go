@@ -22,6 +22,16 @@ func TestKeyBuilderScheduledSet(t *testing.T) {
 	}
 }
 
+func TestKeyBuilderDeadLetterStream(t *testing.T) {
+	keys := newKeyBuilder("payments")
+
+	got := keys.deadLetterStream("emails")
+	want := "payments:queue:emails:dead"
+	if got != want {
+		t.Fatalf("deadLetterStream = %q, want %q", got, want)
+	}
+}
+
 func TestKeyBuilderTaskKeys(t *testing.T) {
 	keys := newKeyBuilder("payments")
 	id := "4ac0a01f-1b16-4330-b3e7-e99826eacb1a"
