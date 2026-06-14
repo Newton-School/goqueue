@@ -12,19 +12,24 @@ import (
 
 // Worker processes queue messages from a Redis stream-backed backend.
 type Worker struct {
-	backend        backend.QueueBackend
-	registry       *task.TaskRegistry
-	queue          task.QueueName
-	group          string
-	consumer       string
-	codec          task.PayloadCodec
-	concurrency    int
-	readBatch      int64
-	block          time.Duration
-	moveDueEnabled bool
-	moveDueLimit   int64
-	idleDelay      time.Duration
-	now            func() time.Time
+	backend                backend.QueueBackend
+	registry               *task.TaskRegistry
+	queue                  task.QueueName
+	group                  string
+	consumer               string
+	codec                  task.PayloadCodec
+	concurrency            int
+	readBatch              int64
+	block                  time.Duration
+	moveDueEnabled         bool
+	moveDueLimit           int64
+	idleDelay              time.Duration
+	deadLetterEnabled      bool
+	pendingRecoveryEnabled bool
+	pendingMinIdle         time.Duration
+	pendingClaimBatch      int64
+	pendingClaimInterval   time.Duration
+	now                    func() time.Time
 }
 
 // NewWorker creates a worker for a queue, registry, and backend.
@@ -73,24 +78,38 @@ func NewWorker(queueBackend backend.QueueBackend, registry *task.TaskRegistry, o
 	if config.idleDelay < 0 {
 		return nil, fmt.Errorf("%w: idle delay cannot be negative", ErrInvalidWorkerOption)
 	}
+	if config.pendingMinIdle < 0 {
+		return nil, fmt.Errorf("%w: pending min idle cannot be negative", ErrInvalidWorkerOption)
+	}
+	if config.pendingClaimBatch < 1 {
+		return nil, fmt.Errorf("%w: pending claim batch must be at least 1", ErrInvalidWorkerOption)
+	}
+	if config.pendingClaimInterval < 0 {
+		return nil, fmt.Errorf("%w: pending claim interval cannot be negative", ErrInvalidWorkerOption)
+	}
 	if config.now == nil {
 		config.now = time.Now().UTC
 	}
 
 	return &Worker{
-		backend:        queueBackend,
-		registry:       registry,
-		queue:          config.queue,
-		group:          config.group,
-		consumer:       config.consumer,
-		codec:          config.codec,
-		concurrency:    config.concurrency,
-		readBatch:      config.readBatch,
-		block:          config.block,
-		moveDueEnabled: config.moveDueEnabled,
-		moveDueLimit:   config.moveDueLimit,
-		idleDelay:      config.idleDelay,
-		now:            config.now,
+		backend:                queueBackend,
+		registry:               registry,
+		queue:                  config.queue,
+		group:                  config.group,
+		consumer:               config.consumer,
+		codec:                  config.codec,
+		concurrency:            config.concurrency,
+		readBatch:              config.readBatch,
+		block:                  config.block,
+		moveDueEnabled:         config.moveDueEnabled,
+		moveDueLimit:           config.moveDueLimit,
+		idleDelay:              config.idleDelay,
+		deadLetterEnabled:      config.deadLetterEnabled,
+		pendingRecoveryEnabled: config.pendingRecoveryEnabled,
+		pendingMinIdle:         config.pendingMinIdle,
+		pendingClaimBatch:      config.pendingClaimBatch,
+		pendingClaimInterval:   config.pendingClaimInterval,
+		now:                    config.now,
 	}, nil
 }
 
