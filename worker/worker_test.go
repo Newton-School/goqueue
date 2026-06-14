@@ -388,6 +388,12 @@ func TestWorkerSkipsExpiredTask(t *testing.T) {
 	if lastState.State != task.TaskExpired {
 		t.Fatalf("final state = %q, want %q", lastState.State, task.TaskExpired)
 	}
+	if len(backend.deadLetterRequests) != 1 {
+		t.Fatalf("dead letter requests = %d, want 1", len(backend.deadLetterRequests))
+	}
+	if backend.deadLetterRequests[0].Reason != task.FailureExpired {
+		t.Fatalf("dead letter reason = %q, want %q", backend.deadLetterRequests[0].Reason, task.FailureExpired)
+	}
 }
 
 func TestWorkerDeadLettersUnknownTask(t *testing.T) {
