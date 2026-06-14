@@ -48,6 +48,8 @@ type (
 	TaskHandler       = task.TaskHandler
 	TaskHandlerFunc   = task.TaskHandlerFunc
 	TaskRegistry      = task.TaskRegistry
+	FailureCategory   = task.FailureCategory
+	FailureMetadata   = task.FailureMetadata
 	Producer          = producer.Producer
 	ApplyOption       = producer.ApplyOption
 	ProducerOption    = producer.ProducerOption
@@ -73,6 +75,15 @@ var (
 	ErrMissingTaskName     = producer.ErrMissingTaskName
 	ErrMissingApplyOption  = producer.ErrMissingApplyOption
 	ErrInvalidWorkerOption = worker.ErrInvalidWorkerOption
+)
+
+const (
+	FailureExecution           = task.FailureExecution
+	FailureMalformedMessage    = task.FailureMalformedMessage
+	FailureUnknownTask         = task.FailureUnknownTask
+	FailureExpired             = task.FailureExpired
+	FailureRetryExhausted      = task.FailureRetryExhausted
+	FailureRetryScheduleFailed = task.FailureRetryScheduleFailed
 )
 
 func ValidateTaskName(name string) error {
