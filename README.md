@@ -165,7 +165,7 @@ Phase 5 and earlier backend capabilities:
 - Dead-letter streams for unrecoverable worker failures.
 - Stale pending message recovery through Redis `XAUTOCLAIM`.
 - Task state and task result storage with TTL-ready APIs.
-- Queue stats for ready and scheduled counts.
+- Queue stats for ready, scheduled, and dead-letter counts.
 
 ## Configuration
 
