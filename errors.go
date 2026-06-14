@@ -14,4 +14,7 @@ var (
 
 	// ErrInvalidNamespace is returned when Namespace is not Redis-key safe.
 	ErrInvalidNamespace = errors.New("goqueue: invalid namespace")
+
+	// ErrInvalidTaskName is returned when a task name is empty or unsafe.
+	ErrInvalidTaskName = errors.New("goqueue: invalid task name")
 )
