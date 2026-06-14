@@ -1,0 +1,17 @@
+package goqueue
+
+import "errors"
+
+var (
+	// ErrMissingRedisURL is returned when an app is created without Redis.
+	ErrMissingRedisURL = errors.New("goqueue: missing redis url")
+
+	// ErrInvalidRedisURL is returned when RedisURL is malformed or unsupported.
+	ErrInvalidRedisURL = errors.New("goqueue: invalid redis url")
+
+	// ErrInvalidQueueName is returned when DefaultQueue is not Redis-key safe.
+	ErrInvalidQueueName = errors.New("goqueue: invalid queue name")
+
+	// ErrInvalidNamespace is returned when Namespace is not Redis-key safe.
+	ErrInvalidNamespace = errors.New("goqueue: invalid namespace")
+)
