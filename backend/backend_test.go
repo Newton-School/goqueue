@@ -3,6 +3,8 @@ package backend
 import (
 	"context"
 	"testing"
+
+	"github.com/Newton-School/goqueue/task"
 )
 
 func TestQueueBackendInterfaceAcceptsImplementation(t *testing.T) {
@@ -24,5 +26,20 @@ func (noopBackend) ReadReady(context.Context, ReadReadyRequest) ([]ReadyMessage,
 	return nil, nil
 }
 func (noopBackend) Ack(context.Context, AckRequest) error { return nil }
-func (noopBackend) Ping(context.Context) error            { return nil }
-func (noopBackend) Close() error                          { return nil }
+func (noopBackend) SetTaskState(context.Context, TaskStateRecord) error {
+	return nil
+}
+func (noopBackend) GetTaskState(context.Context, task.TaskID) (TaskStateRecord, error) {
+	return TaskStateRecord{}, nil
+}
+func (noopBackend) SaveTaskResult(context.Context, TaskResultRecord) error {
+	return nil
+}
+func (noopBackend) GetTaskResult(context.Context, task.TaskID) (TaskResultRecord, error) {
+	return TaskResultRecord{}, nil
+}
+func (noopBackend) ForgetTaskResult(context.Context, task.TaskID) error {
+	return nil
+}
+func (noopBackend) Ping(context.Context) error { return nil }
+func (noopBackend) Close() error               { return nil }
