@@ -3,8 +3,11 @@ package redisbackend
 import (
 	"testing"
 
+	"github.com/Newton-School/goqueue/backend"
 	"github.com/redis/go-redis/v9"
 )
+
+var _ backend.QueueBackend = (*Backend)(nil)
 
 func TestNewBuildsBackendWithValidatedOptions(t *testing.T) {
 	backend, err := New(NewOptions("redis://localhost:6379/0"), WithClient(redis.NewClient(&redis.Options{Addr: "localhost:6379"})))
