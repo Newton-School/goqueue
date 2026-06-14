@@ -107,8 +107,8 @@
 
 ### Acceptance Criteria
 
-- Worker sends poisoned/unknown/exhausted/expired unrecoverable tasks to a Redis-backed DLQ.
-- Worker never acknowledges a message before final state/result/retry/DLQ persistence succeeds.
+- [x] Worker sends poisoned/unknown/exhausted/expired unrecoverable tasks to a Redis-backed DLQ.
+- [x] Worker never acknowledges a message before final state/result/retry/DLQ persistence succeeds.
 - Worker can claim stale pending stream messages for pod-crash recovery.
 - Redis queue stats include dead-letter counts.
 - Public APIs expose reliability options and failure metadata constants.
