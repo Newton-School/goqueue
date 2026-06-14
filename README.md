@@ -5,9 +5,10 @@ Celery-style developer experience for Go: named tasks, queue routing, immediate
 execution, scheduled execution, retries, workers, periodic jobs, and workflow
 primitives such as groups and chains.
 
-This repository is in Phase 0. The current public surface establishes the
-module, configuration model, validation rules, CI, and documentation baseline.
-Producer and worker execution APIs will be built on top of this foundation.
+This repository has completed Phase 1. The current public surface establishes
+the module, configuration model, task identity primitives, payload codecs, task
+envelopes, handler contracts, and task registration. Redis producer and worker
+execution APIs will be built on top of this foundation.
 
 ## Installation
 
@@ -36,8 +37,39 @@ func main() {
 		log.Fatal(err)
 	}
 
-	_ = app
+	err = app.RegisterTask("email.send_welcome", goqueue.TaskHandlerFunc(
+		func(ctx goqueue.HandlerContext, payload goqueue.TaskPayload) (goqueue.TaskResult, error) {
+			return goqueue.SucceededResult("queued-model-ready"), nil
+		},
+	))
+	if err != nil {
+		log.Fatal(err)
+	}
 }
+```
+
+## Task Envelopes
+
+Task envelopes are Redis-independent. They are the shared model future
+producers, schedulers, and workers will use.
+
+```go
+envelope, err := goqueue.NewTaskEnvelope(goqueue.TaskEnvelopeInput{
+	Name:   "email.send_welcome",
+	Queue:  "default",
+	Args:   []any{"u_123"},
+	Kwargs: map[string]any{"template": "welcome"},
+})
+if err != nil {
+	log.Fatal(err)
+}
+
+message, err := goqueue.TaskEnvelopeToMessage(envelope, goqueue.JSONPayloadCodec{})
+if err != nil {
+	log.Fatal(err)
+}
+
+_ = message
 ```
 
 ## Configuration
@@ -64,14 +96,13 @@ suite.
 
 ## Roadmap
 
-1. Core task envelope and registry.
-2. Redis Streams backend for ready queues.
-3. Producer API for immediate and delayed tasks.
-4. Worker runtime with acknowledgements and graceful shutdown.
-5. Retries, dead-letter queues, and task expiration.
-6. Scheduler and periodic jobs.
-7. Canvas primitives: chains, groups, and chords.
-8. Observability, inspection APIs, and CLI commands.
+1. Redis Streams backend for ready queues.
+2. Producer API for immediate and delayed tasks.
+3. Worker runtime with acknowledgements and graceful shutdown.
+4. Retries, dead-letter queues, and task expiration.
+5. Scheduler and periodic jobs.
+6. Canvas primitives: chains, groups, and chords.
+7. Observability, inspection APIs, and CLI commands.
 
 ## Security
 

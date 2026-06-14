@@ -12,27 +12,27 @@
 
 ### Commit Plan
 
-- [ ] Add the Phase 1 plan document.
-- [ ] Add task name validation.
-- [ ] Add queue name validation.
-- [ ] Add task ID validation and generation.
-- [ ] Add priority validation.
-- [ ] Add task state constants and terminal checks.
-- [ ] Add retry policy defaults and validation.
-- [ ] Add task timing options for ETA, countdown, and expiration.
-- [ ] Add task payload copying.
-- [ ] Add JSON payload codec.
-- [ ] Add task envelope defaults.
-- [ ] Add task envelope validation.
-- [ ] Add task envelope copy behavior.
-- [ ] Add task message conversion.
-- [ ] Add handler context.
-- [ ] Add task result contract.
-- [ ] Add task handler adapter.
-- [ ] Add registry registration.
-- [ ] Add registry lookup.
-- [ ] Add app-level task registration.
-- [ ] Update public docs for Phase 1.
+- [x] Add the Phase 1 plan document.
+- [x] Add task name validation.
+- [x] Add queue name validation.
+- [x] Add task ID validation and generation.
+- [x] Add priority validation.
+- [x] Add task state constants and terminal checks.
+- [x] Add retry policy defaults and validation.
+- [x] Add task timing options for ETA, countdown, and expiration.
+- [x] Add task payload copying.
+- [x] Add JSON payload codec.
+- [x] Add task envelope defaults.
+- [x] Add task envelope validation.
+- [x] Add task envelope copy behavior.
+- [x] Add task message conversion.
+- [x] Add handler context.
+- [x] Add task result contract.
+- [x] Add task handler adapter.
+- [x] Add registry registration.
+- [x] Add registry lookup.
+- [x] Add app-level task registration.
+- [x] Update public docs for Phase 1.
 
 ### Acceptance Criteria
 
