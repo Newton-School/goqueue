@@ -138,6 +138,9 @@ state, result, retry scheduling, or DLQ persistence succeeds.
 Unrecoverable tasks are written to Redis-backed dead-letter streams with a
 failure reason, source stream ID, worker group, consumer, error, and timestamp.
 
+Pending recovery is opt-in and uses Redis `XAUTOCLAIM` to reclaim messages that
+were read by a worker but never acknowledged.
+
 ## Redis Backend
 
 The Redis backend persists task messages and queue state.
