@@ -121,8 +121,10 @@ func (w *Worker) Start(ctx context.Context) error {
 	if ctx == nil {
 		ctx = context.Background()
 	}
+	runCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
 
-	if err := w.backend.EnsureConsumerGroup(ctx, backend.ConsumerGroupRequest{
+	if err := w.backend.EnsureConsumerGroup(runCtx, backend.ConsumerGroupRequest{
 		Queue: w.queue,
 		Group: w.group,
 	}); err != nil {
@@ -130,21 +132,29 @@ func (w *Worker) Start(ctx context.Context) error {
 	}
 
 	sem := make(chan struct{}, w.concurrency)
+	errCh := make(chan error, 1)
 	var wg sync.WaitGroup
 
 loop:
 	for {
-		if ctx.Err() != nil {
+		select {
+		case err := <-errCh:
+			wg.Wait()
+			return err
+		default:
+		}
+
+		if runCtx.Err() != nil {
 			break loop
 		}
 
 		if w.moveDueEnabled {
-			if err := w.moveDueScheduled(ctx); err != nil {
+			if err := w.moveDueScheduled(runCtx); err != nil {
 				return err
 			}
 		}
 
-		readies, err := w.backend.ReadReady(ctx, backend.ReadReadyRequest{
+		readies, err := w.backend.ReadReady(runCtx, backend.ReadReadyRequest{
 			Queue:    w.queue,
 			Group:    w.group,
 			Consumer: w.consumer,
@@ -152,7 +162,7 @@ loop:
 			Block:    w.block,
 		})
 		if err != nil {
-			if ctx.Err() != nil {
+			if runCtx.Err() != nil {
 				break loop
 			}
 			return fmt.Errorf("goqueue worker: read ready queue: %w", err)
@@ -161,7 +171,7 @@ loop:
 		if len(readies) == 0 {
 			if w.block == 0 && w.idleDelay > 0 {
 				select {
-				case <-ctx.Done():
+				case <-runCtx.Done():
 					break loop
 				case <-time.After(w.idleDelay):
 				}
@@ -172,7 +182,7 @@ loop:
 		for _, ready := range readies {
 			select {
 			case sem <- struct{}{}:
-			case <-ctx.Done():
+			case <-runCtx.Done():
 				break loop
 			}
 
@@ -183,12 +193,23 @@ loop:
 					<-sem
 				}()
 
-				_ = w.processMessage(ctx, message)
+				if err := w.processMessage(runCtx, message); err != nil {
+					select {
+					case errCh <- err:
+						cancel()
+					default:
+					}
+				}
 			}(ready)
 		}
 	}
 
 	wg.Wait()
+	select {
+	case err := <-errCh:
+		return err
+	default:
+	}
 	return nil
 }
 
@@ -217,9 +238,12 @@ func (w *Worker) processMessage(ctx context.Context, message backend.ReadyMessag
 		return err
 	}
 
-	if err := w.checkExpired(ctx, envelope); err != nil {
-		_ = w.ack(ctx, message.StreamID)
+	expired, err := w.checkExpired(ctx, envelope)
+	if err != nil {
 		return err
+	}
+	if expired {
+		return w.ack(ctx, message.StreamID)
 	}
 
 	handler, err := w.registry.Lookup(envelope.Name)
@@ -323,24 +347,24 @@ func (w *Worker) retryTask(ctx context.Context, streamID string, envelope task.T
 	return w.ack(ctx, streamID)
 }
 
-func (w *Worker) checkExpired(ctx context.Context, envelope task.TaskEnvelope) error {
+func (w *Worker) checkExpired(ctx context.Context, envelope task.TaskEnvelope) (bool, error) {
 	if envelope.Timing.ExpiresAt.IsZero() {
-		return nil
+		return false, nil
 	}
 
 	if envelope.Timing.ExpiresAt.After(w.now()) {
-		return nil
+		return false, nil
 	}
 
 	result := task.FailedResult(fmt.Errorf("task expired"))
 	if err := w.writeState(ctx, envelope.ID, task.TaskExpired, result.Error); err != nil {
-		return err
+		return false, err
 	}
 	if err := w.saveResult(ctx, envelope.ID, result); err != nil {
-		return err
+		return false, err
 	}
 
-	return fmt.Errorf("task expired")
+	return true, nil
 }
 
 func normalizeTaskResult(result task.TaskResult) task.TaskResult {
