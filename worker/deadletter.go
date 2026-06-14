@@ -40,7 +40,10 @@ func (w *Worker) deadLetterTask(
 	result task.TaskResult,
 ) error {
 	if !w.deadLetterEnabled {
-		return nil
+		if err := w.writeState(ctx, envelope.ID, task.TaskFailed, result.Error); err != nil {
+			return err
+		}
+		return w.saveResult(ctx, envelope.ID, result)
 	}
 
 	result, err := w.recordDeadLetter(ctx, streamID, envelope, message, reason, result)
