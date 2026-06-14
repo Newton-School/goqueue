@@ -32,4 +32,7 @@ var (
 
 	// ErrInvalidTaskTiming is returned when task scheduling fields conflict.
 	ErrInvalidTaskTiming = errors.New("goqueue: invalid task timing")
+
+	// ErrInvalidPayload is returned when a task payload cannot be encoded or decoded.
+	ErrInvalidPayload = errors.New("goqueue: invalid payload")
 )
