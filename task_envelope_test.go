@@ -1,6 +1,7 @@
 package goqueue
 
 import (
+	"errors"
 	"testing"
 	"time"
 )
@@ -43,5 +44,36 @@ func TestNewTaskEnvelopePreservesMinimumPriority(t *testing.T) {
 
 	if envelope.Priority != MinPriority {
 		t.Fatalf("Priority = %d, want %d", envelope.Priority, MinPriority)
+	}
+}
+
+func TestNewTaskEnvelopeRejectsInvalidName(t *testing.T) {
+	_, err := NewTaskEnvelope(TaskEnvelopeInput{
+		Name:  "email/send",
+		Queue: "default",
+	})
+	if !errors.Is(err, ErrInvalidTaskName) {
+		t.Fatalf("NewTaskEnvelope error = %v, want ErrInvalidTaskName", err)
+	}
+}
+
+func TestNewTaskEnvelopeRejectsInvalidQueue(t *testing.T) {
+	_, err := NewTaskEnvelope(TaskEnvelopeInput{
+		Name:  "email.send",
+		Queue: "default queue",
+	})
+	if !errors.Is(err, ErrInvalidQueueName) {
+		t.Fatalf("NewTaskEnvelope error = %v, want ErrInvalidQueueName", err)
+	}
+}
+
+func TestNewTaskEnvelopeRejectsInvalidRetryPolicy(t *testing.T) {
+	_, err := NewTaskEnvelope(TaskEnvelopeInput{
+		Name:        "email.send",
+		Queue:       "default",
+		RetryPolicy: RetryPolicy{MaxAttempts: -1},
+	})
+	if !errors.Is(err, ErrInvalidRetryPolicy) {
+		t.Fatalf("NewTaskEnvelope error = %v, want ErrInvalidRetryPolicy", err)
 	}
 }

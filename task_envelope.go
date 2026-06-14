@@ -57,7 +57,7 @@ func NewTaskEnvelope(input TaskEnvelopeInput) (TaskEnvelope, error) {
 		createdAt = time.Now().UTC()
 	}
 
-	return TaskEnvelope{
+	envelope := TaskEnvelope{
 		ID:          id,
 		Name:        input.Name,
 		Queue:       input.Queue,
@@ -68,5 +68,40 @@ func NewTaskEnvelope(input TaskEnvelopeInput) (TaskEnvelope, error) {
 		RetryPolicy: retryPolicy,
 		CreatedAt:   createdAt,
 		Attempt:     input.Attempt,
-	}, nil
+	}
+
+	if err := envelope.Validate(); err != nil {
+		return TaskEnvelope{}, err
+	}
+
+	return envelope, nil
+}
+
+// Validate verifies that the envelope is safe for queue storage and execution.
+func (e TaskEnvelope) Validate() error {
+	if err := ValidateTaskID(e.ID.String()); err != nil {
+		return err
+	}
+
+	if err := ValidateTaskName(e.Name.String()); err != nil {
+		return err
+	}
+
+	if err := ValidateQueueName(e.Queue.String()); err != nil {
+		return err
+	}
+
+	if err := ValidatePriority(e.Priority); err != nil {
+		return err
+	}
+
+	if err := e.RetryPolicy.Validate(); err != nil {
+		return err
+	}
+
+	if err := e.Timing.Validate(); err != nil {
+		return err
+	}
+
+	return nil
 }
