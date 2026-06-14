@@ -83,13 +83,13 @@
 - Create: `worker/recovery.go`
 - Modify: `worker/worker_test.go`
 
-- [ ] Add worker options for DLQ enablement, pending recovery enablement, pending claim interval, pending min idle, and pending claim batch.
-- [ ] Add startup recovery polling before ready reads.
-- [ ] Route malformed messages, unknown tasks, expired tasks, retry-exhausted failures, and retry-schedule failures to DLQ when enabled.
-- [ ] Preserve strict ack semantics: only ack after state/result/retry/DLQ persistence succeeds.
-- [ ] Persist failure metadata in task results.
-- [ ] Verify with `go test ./worker`.
-- [ ] Commit each worker behavior.
+- [x] Add worker options for DLQ enablement, pending recovery enablement, pending claim interval, pending min idle, and pending claim batch.
+- [x] Add startup recovery polling before ready reads.
+- [x] Route malformed messages, unknown tasks, expired tasks, retry-exhausted failures, and retry-schedule failures to DLQ when enabled.
+- [x] Preserve strict ack semantics: only ack after state/result/retry/DLQ persistence succeeds.
+- [x] Persist failure metadata in task results.
+- [x] Verify with `go test ./worker`.
+- [x] Commit each worker behavior.
 
 ### Task 6: Public API And Docs
 
