@@ -5,10 +5,11 @@ Celery-style developer experience for Go: named tasks, queue routing, immediate
 execution, scheduled execution, retries, workers, periodic jobs, and workflow
 primitives such as groups and chains.
 
-This repository has completed Phase 1. The current public surface establishes
+This repository has completed Phase 2. The current public surface establishes
 the module, configuration model, task identity primitives, payload codecs, task
-envelopes, handler contracts, and task registration. Redis producer and worker
-execution APIs will be built on top of this foundation.
+envelopes, handler contracts, task registration, backend contracts, and a Redis
+backend foundation. Producer and worker execution APIs will be built on top of
+this foundation.
 
 ## Installation
 
@@ -72,6 +73,28 @@ if err != nil {
 _ = message
 ```
 
+## Redis Backend
+
+The Redis backend persists task messages and queue state. It does not run
+workers or producer convenience APIs yet.
+
+```go
+backend, err := app.NewRedisBackend()
+if err != nil {
+	log.Fatal(err)
+}
+defer backend.Close()
+```
+
+Phase 2 backend capabilities:
+
+- Ready queues backed by Redis Streams.
+- Scheduled queues backed by Redis sorted sets.
+- Atomic Lua scripts for ready enqueue, scheduled enqueue, and due-task moves.
+- Consumer group creation, stream reads, and acknowledgements.
+- Task state and task result storage with TTL-ready APIs.
+- Queue stats for ready and scheduled counts.
+
 ## Configuration
 
 The SDK does not read `.env` files from library code. Applications should load
@@ -79,8 +102,8 @@ their own configuration and pass it explicitly to `goqueue.New`.
 
 | Variable | Required | Default | Purpose |
 | --- | --- | --- | --- |
-| `GOQUEUE_REDIS_URL` | Yes for apps and integration tests | Empty | Redis connection URL passed by the application as `WithRedisURL`. |
-| `GOQUEUE_RUN_INTEGRATION_TESTS` | No | `false` | Enables Redis-backed integration tests once those tests exist. |
+| `GOQUEUE_REDIS_URL` | Yes for apps and Redis integration tests | Empty | Redis connection URL passed by the application as `WithRedisURL`. |
+| `GOQUEUE_RUN_INTEGRATION_TESTS` | No | `false` | Enables Redis-backed integration tests. |
 
 Redis URLs must use `redis://` or `rediss://`. Queue names and namespaces must
 use 1-128 characters from `A-Z`, `a-z`, `0-9`, `.`, `_`, `:`, and `-`.
@@ -103,6 +126,11 @@ suite.
 ├── task/
 │   Redis-independent task domain model: identifiers, payloads, envelopes,
 │   messages, handlers, results, retry policy, timing, and registry.
+├── backend/
+│   Backend interfaces and storage request/response contracts used by future
+│   producers, schedulers, and workers.
+├── redisbackend/
+│   Redis Streams, sorted sets, Lua scripts, task state, and result storage.
 ├── docs/superpowers/plans/
 │   Phase implementation plans and acceptance checklists.
 └── .github/workflows/
@@ -116,13 +144,12 @@ module root.
 
 ## Roadmap
 
-1. Redis Streams backend for ready queues.
-2. Producer API for immediate and delayed tasks.
-3. Worker runtime with acknowledgements and graceful shutdown.
-4. Retries, dead-letter queues, and task expiration.
-5. Scheduler and periodic jobs.
-6. Canvas primitives: chains, groups, and chords.
-7. Observability, inspection APIs, and CLI commands.
+1. Producer API for immediate and delayed tasks.
+2. Worker runtime with acknowledgements and graceful shutdown.
+3. Retries, dead-letter queues, and task expiration.
+4. Scheduler and periodic jobs.
+5. Canvas primitives: chains, groups, and chords.
+6. Observability, inspection APIs, and CLI commands.
 
 ## Security
 

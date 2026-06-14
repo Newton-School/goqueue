@@ -12,55 +12,54 @@
 
 ### Commit Plan
 
-- [ ] Add the Phase 2 plan document.
-- [ ] Add go-redis dependency.
-- [ ] Add backend package errors.
-- [ ] Add backend queue contract.
-- [ ] Add backend enqueue/read/ack types.
-- [ ] Add backend state/result types.
-- [ ] Add backend stats types.
-- [ ] Add Redis backend options.
-- [ ] Add Redis backend constructor.
-- [ ] Add Redis namespace validation.
-- [ ] Add Redis key builder.
-- [ ] Add Redis key tests for ready streams.
-- [ ] Add Redis key tests for scheduled sets.
-- [ ] Add Redis key tests for task storage.
-- [ ] Add Redis message codec.
-- [ ] Add Redis message codec validation.
-- [ ] Add Redis message storage abstraction.
-- [ ] Add ready enqueue Lua script.
-- [ ] Add ready enqueue command.
-- [ ] Add scheduled enqueue Lua script.
-- [ ] Add scheduled enqueue command.
-- [ ] Add due scheduled Lua script.
-- [ ] Add due scheduled parser.
-- [ ] Add due scheduled command.
-- [ ] Add consumer group creation.
-- [ ] Add ready stream read options.
-- [ ] Add ready stream read command.
-- [ ] Add ready stream ack command.
-- [ ] Add pending message claim placeholder contract.
-- [ ] Add state storage model.
-- [ ] Add state set command.
-- [ ] Add state get command.
-- [ ] Add result storage model.
-- [ ] Add result save command.
-- [ ] Add result get command.
-- [ ] Add result forget command.
-- [ ] Add queue stats command.
-- [ ] Add backend health ping.
-- [ ] Add close method.
-- [ ] Add integration test gating.
-- [ ] Add integration test Redis cleanup namespace.
-- [ ] Add integration test ready enqueue/read/ack.
-- [ ] Add integration test scheduled enqueue/move.
-- [ ] Add integration test state storage.
-- [ ] Add integration test result storage.
-- [ ] Add root config Redis backend helper.
-- [ ] Add root facade docs for Redis backend.
-- [ ] Update README package layout.
-- [ ] Update `.env.example` comments.
+- [x] Add the Phase 2 plan document.
+- [x] Add go-redis dependency.
+- [x] Add backend package errors.
+- [x] Add backend queue contract.
+- [x] Add backend enqueue/read/ack types.
+- [x] Add backend state/result types.
+- [x] Add backend stats types.
+- [x] Add Redis backend options.
+- [x] Add Redis backend constructor.
+- [x] Add Redis namespace validation.
+- [x] Add Redis key builder.
+- [x] Add Redis key tests for ready streams.
+- [x] Add Redis key tests for scheduled sets.
+- [x] Add Redis key tests for task storage.
+- [x] Add Redis message codec.
+- [x] Add Redis message codec validation.
+- [x] Add Redis message storage abstraction.
+- [x] Add ready enqueue Lua script.
+- [x] Add ready enqueue command.
+- [x] Add scheduled enqueue Lua script.
+- [x] Add scheduled enqueue command.
+- [x] Add due scheduled Lua script.
+- [x] Add due scheduled parser.
+- [x] Add due scheduled command.
+- [x] Add consumer group creation.
+- [x] Add ready stream read options.
+- [x] Add ready stream read command.
+- [x] Add ready stream ack command.
+- [x] Add state storage model.
+- [x] Add state set command.
+- [x] Add state get command.
+- [x] Add result storage model.
+- [x] Add result save command.
+- [x] Add result get command.
+- [x] Add result forget command.
+- [x] Add queue stats command.
+- [x] Add backend health ping.
+- [x] Add close method.
+- [x] Add integration test gating.
+- [x] Add integration test Redis cleanup namespace.
+- [x] Add integration test ready enqueue/read/ack.
+- [x] Add integration test scheduled enqueue/move.
+- [x] Add integration test state storage.
+- [x] Add integration test result storage.
+- [x] Add root config Redis backend helper.
+- [x] Add root facade docs for Redis backend.
+- [x] Update README package layout.
+- [x] Update `.env.example` comments.
 - [ ] Run full verification.
 - [ ] Run race tests.
 
