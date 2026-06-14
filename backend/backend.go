@@ -13,7 +13,10 @@ type QueueBackend interface {
 	MoveDueScheduled(context.Context, MoveDueScheduledRequest) ([]MovedScheduledMessage, error)
 	EnsureConsumerGroup(context.Context, ConsumerGroupRequest) error
 	ReadReady(context.Context, ReadReadyRequest) ([]ReadyMessage, error)
+	ClaimStaleReady(context.Context, ClaimStaleReadyRequest) ([]ReadyMessage, error)
 	Ack(context.Context, AckRequest) error
+	EnqueueDeadLetter(context.Context, DeadLetterRequest) (DeadLetterRecord, error)
+	ReadDeadLetters(context.Context, ReadDeadLettersRequest) ([]DeadLetterRecord, error)
 	SetTaskState(context.Context, TaskStateRecord) error
 	GetTaskState(context.Context, task.TaskID) (TaskStateRecord, error)
 	SaveTaskResult(context.Context, TaskResultRecord) error

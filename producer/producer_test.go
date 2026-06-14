@@ -64,9 +64,21 @@ func (f *fakeBackend) ReadReady(_ context.Context, _ backend.ReadReadyRequest) (
 	return nil, f.readErr
 }
 
+func (f *fakeBackend) ClaimStaleReady(_ context.Context, _ backend.ClaimStaleReadyRequest) ([]backend.ReadyMessage, error) {
+	return nil, nil
+}
+
 func (f *fakeBackend) Ack(_ context.Context, _ backend.AckRequest) error {
 	f.ackCalled = true
 	return f.ackErr
+}
+
+func (f *fakeBackend) EnqueueDeadLetter(_ context.Context, _ backend.DeadLetterRequest) (backend.DeadLetterRecord, error) {
+	return backend.DeadLetterRecord{}, nil
+}
+
+func (f *fakeBackend) ReadDeadLetters(_ context.Context, _ backend.ReadDeadLettersRequest) ([]backend.DeadLetterRecord, error) {
+	return nil, nil
 }
 
 func (f *fakeBackend) SetTaskState(_ context.Context, record backend.TaskStateRecord) error {

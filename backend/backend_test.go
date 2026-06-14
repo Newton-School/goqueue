@@ -31,7 +31,16 @@ func (noopBackend) EnsureConsumerGroup(context.Context, ConsumerGroupRequest) er
 func (noopBackend) ReadReady(context.Context, ReadReadyRequest) ([]ReadyMessage, error) {
 	return nil, nil
 }
+func (noopBackend) ClaimStaleReady(context.Context, ClaimStaleReadyRequest) ([]ReadyMessage, error) {
+	return nil, nil
+}
 func (noopBackend) Ack(context.Context, AckRequest) error { return nil }
+func (noopBackend) EnqueueDeadLetter(context.Context, DeadLetterRequest) (DeadLetterRecord, error) {
+	return DeadLetterRecord{}, nil
+}
+func (noopBackend) ReadDeadLetters(context.Context, ReadDeadLettersRequest) ([]DeadLetterRecord, error) {
+	return nil, nil
+}
 func (noopBackend) SetTaskState(context.Context, TaskStateRecord) error {
 	return nil
 }

@@ -429,6 +429,10 @@ func (f *fakeBackend) ReadReady(_ context.Context, req backend.ReadReadyRequest)
 	return f.readReadyFn(context.Background(), req)
 }
 
+func (f *fakeBackend) ClaimStaleReady(_ context.Context, _ backend.ClaimStaleReadyRequest) ([]backend.ReadyMessage, error) {
+	return nil, nil
+}
+
 func (f *fakeBackend) Ack(ctx context.Context, req backend.AckRequest) error {
 	f.mu.Lock()
 	f.ackRequests = append(f.ackRequests, req)
@@ -439,6 +443,14 @@ func (f *fakeBackend) Ack(ctx context.Context, req backend.AckRequest) error {
 	}
 
 	return nil
+}
+
+func (f *fakeBackend) EnqueueDeadLetter(_ context.Context, _ backend.DeadLetterRequest) (backend.DeadLetterRecord, error) {
+	return backend.DeadLetterRecord{}, nil
+}
+
+func (f *fakeBackend) ReadDeadLetters(_ context.Context, _ backend.ReadDeadLettersRequest) ([]backend.DeadLetterRecord, error) {
+	return nil, nil
 }
 
 func (f *fakeBackend) SetTaskState(_ context.Context, record backend.TaskStateRecord) error {
