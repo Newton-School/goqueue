@@ -134,6 +134,33 @@ func (w *Worker) Start(ctx context.Context) error {
 	sem := make(chan struct{}, w.concurrency)
 	errCh := make(chan error, 1)
 	var wg sync.WaitGroup
+	var lastPendingClaim time.Time
+
+	dispatch := func(messages []backend.ReadyMessage) {
+		for _, ready := range messages {
+			select {
+			case sem <- struct{}{}:
+			case <-runCtx.Done():
+				return
+			}
+
+			wg.Add(1)
+			go func(message backend.ReadyMessage) {
+				defer wg.Done()
+				defer func() {
+					<-sem
+				}()
+
+				if err := w.processMessage(runCtx, message); err != nil {
+					select {
+					case errCh <- err:
+						cancel()
+					default:
+					}
+				}
+			}(ready)
+		}
+	}
 
 loop:
 	for {
@@ -152,6 +179,18 @@ loop:
 			if err := w.moveDueScheduled(runCtx); err != nil {
 				return err
 			}
+		}
+
+		if w.shouldClaimPending(w.now(), lastPendingClaim) {
+			claimed, err := w.claimStalePending(runCtx)
+			if err != nil {
+				if runCtx.Err() != nil {
+					break loop
+				}
+				return fmt.Errorf("goqueue worker: claim stale pending queue: %w", err)
+			}
+			lastPendingClaim = w.now()
+			dispatch(claimed)
 		}
 
 		readies, err := w.backend.ReadReady(runCtx, backend.ReadReadyRequest{
@@ -179,29 +218,7 @@ loop:
 			continue
 		}
 
-		for _, ready := range readies {
-			select {
-			case sem <- struct{}{}:
-			case <-runCtx.Done():
-				break loop
-			}
-
-			wg.Add(1)
-			go func(message backend.ReadyMessage) {
-				defer wg.Done()
-				defer func() {
-					<-sem
-				}()
-
-				if err := w.processMessage(runCtx, message); err != nil {
-					select {
-					case errCh <- err:
-						cancel()
-					default:
-					}
-				}
-			}(ready)
-		}
+		dispatch(readies)
 	}
 
 	wg.Wait()
