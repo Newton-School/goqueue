@@ -74,3 +74,37 @@ func TestAppTaskNamesReturnsRegisteredNames(t *testing.T) {
 		t.Fatalf("TaskNames = %#v, want registered task name", names)
 	}
 }
+
+func TestAppNewProducerUsesConfigDefaults(t *testing.T) {
+	app, err := New(
+		WithRedisURL("redis://localhost:6379/0"),
+		WithDefaultQueue("billing"),
+		WithNamespace("inbox"),
+	)
+	if err != nil {
+		t.Fatalf("New returned error: %v", err)
+	}
+
+	producer, err := app.NewProducer()
+	if err != nil {
+		t.Fatalf("NewProducer returned error: %v", err)
+	}
+	if producer == nil {
+		t.Fatal("NewProducer returned nil")
+	}
+}
+
+func TestAppNewWorkerUsesConfigDefaults(t *testing.T) {
+	app, err := New(WithRedisURL("redis://localhost:6379/0"), WithDefaultQueue("billing"))
+	if err != nil {
+		t.Fatalf("New returned error: %v", err)
+	}
+
+	worker, err := app.NewWorker()
+	if err != nil {
+		t.Fatalf("NewWorker returned error: %v", err)
+	}
+	if worker == nil {
+		t.Fatal("NewWorker returned nil")
+	}
+}

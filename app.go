@@ -1,5 +1,10 @@
 package goqueue
 
+import (
+	"github.com/Newton-School/goqueue/producer"
+	"github.com/Newton-School/goqueue/worker"
+)
+
 // App is the root goqueue application instance.
 type App struct {
 	config   Config
@@ -37,4 +42,34 @@ func (a *App) LookupTask(name TaskName) (TaskHandler, error) {
 // TaskNames returns registered task names in sorted order.
 func (a *App) TaskNames() []TaskName {
 	return a.registry.Names()
+}
+
+// NewProducer creates a producer with app defaults.
+func (a *App) NewProducer(opts ...producer.ProducerOption) (*producer.Producer, error) {
+	backend, err := a.NewRedisBackend()
+	if err != nil {
+		return nil, err
+	}
+
+	allOpts := append(
+		[]producer.ProducerOption{producer.WithProducerDefaultQueue(QueueName(a.config.DefaultQueue))},
+		opts...,
+	)
+
+	return producer.NewProducer(backend, allOpts...)
+}
+
+// NewWorker creates a worker for queue-based task execution.
+func (a *App) NewWorker(opts ...worker.WorkerOption) (*worker.Worker, error) {
+	backend, err := a.NewRedisBackend()
+	if err != nil {
+		return nil, err
+	}
+
+	allOpts := append(
+		[]worker.WorkerOption{worker.WithWorkerQueue(QueueName(a.config.DefaultQueue))},
+		opts...,
+	)
+
+	return worker.NewWorker(backend, a.registry, allOpts...)
 }

@@ -4,7 +4,9 @@ import (
 	"context"
 	"time"
 
+	"github.com/Newton-School/goqueue/producer"
 	"github.com/Newton-School/goqueue/task"
+	"github.com/Newton-School/goqueue/worker"
 )
 
 const (
@@ -46,19 +48,31 @@ type (
 	TaskHandler       = task.TaskHandler
 	TaskHandlerFunc   = task.TaskHandlerFunc
 	TaskRegistry      = task.TaskRegistry
+	Producer          = producer.Producer
+	ApplyOption       = producer.ApplyOption
+	ProducerOption    = producer.ProducerOption
+	AsyncResult       = producer.AsyncResult
+	Worker            = worker.Worker
+	WorkerOption      = worker.WorkerOption
 )
 
 var (
-	ErrInvalidTaskName    = task.ErrInvalidTaskName
-	ErrInvalidTaskID      = task.ErrInvalidTaskID
-	ErrInvalidPriority    = task.ErrInvalidPriority
-	ErrInvalidTaskState   = task.ErrInvalidTaskState
-	ErrInvalidRetryPolicy = task.ErrInvalidRetryPolicy
-	ErrInvalidTaskTiming  = task.ErrInvalidTaskTiming
-	ErrInvalidPayload     = task.ErrInvalidPayload
-	ErrDuplicateTask      = task.ErrDuplicateTask
-	ErrInvalidTaskHandler = task.ErrInvalidTaskHandler
-	ErrTaskNotFound       = task.ErrTaskNotFound
+	ErrInvalidTaskName     = task.ErrInvalidTaskName
+	ErrInvalidTaskID       = task.ErrInvalidTaskID
+	ErrInvalidPriority     = task.ErrInvalidPriority
+	ErrInvalidTaskState    = task.ErrInvalidTaskState
+	ErrInvalidRetryPolicy  = task.ErrInvalidRetryPolicy
+	ErrInvalidTaskTiming   = task.ErrInvalidTaskTiming
+	ErrInvalidPayload      = task.ErrInvalidPayload
+	ErrDuplicateTask       = task.ErrDuplicateTask
+	ErrInvalidTaskHandler  = task.ErrInvalidTaskHandler
+	ErrTaskNotFound        = task.ErrTaskNotFound
+	ErrNilBackend          = producer.ErrNilBackend
+	ErrNilWorker           = worker.ErrNilWorker
+	ErrNilTaskRegistry     = worker.ErrNilTaskRegistry
+	ErrMissingTaskName     = producer.ErrMissingTaskName
+	ErrMissingApplyOption  = producer.ErrMissingApplyOption
+	ErrInvalidWorkerOption = worker.ErrInvalidWorkerOption
 )
 
 func ValidateTaskName(name string) error {
@@ -111,6 +125,102 @@ func TaskEnvelopeToMessage(envelope TaskEnvelope, codec PayloadCodec) (TaskMessa
 
 func TaskMessageToEnvelope(message TaskMessage, codec PayloadCodec) (TaskEnvelope, error) {
 	return task.TaskMessageToEnvelope(message, codec)
+}
+
+func WithProducerDefaultQueue(queue QueueName) ProducerOption {
+	return producer.WithProducerDefaultQueue(queue)
+}
+
+func WithProducerCodec(codec PayloadCodec) ProducerOption {
+	return producer.WithProducerCodec(codec)
+}
+
+func WithProducerNow(now func() time.Time) ProducerOption {
+	return producer.WithProducerNow(now)
+}
+
+func WithApplyQueue(queue QueueName) ApplyOption {
+	return producer.WithApplyQueue(queue)
+}
+
+func WithApplyTaskID(id TaskID) ApplyOption {
+	return producer.WithApplyTaskID(id)
+}
+
+func WithApplyMetadata(metadata map[string]string) ApplyOption {
+	return producer.WithApplyMetadata(metadata)
+}
+
+func WithApplyPriority(priority Priority) ApplyOption {
+	return producer.WithApplyPriority(priority)
+}
+
+func WithApplyRetryPolicy(policy RetryPolicy) ApplyOption {
+	return producer.WithApplyRetryPolicy(policy)
+}
+
+func WithApplyCountDown(countDown time.Duration) ApplyOption {
+	return producer.WithApplyCountDown(countDown)
+}
+
+func WithApplyETA(eta time.Time) ApplyOption {
+	return producer.WithApplyETA(eta)
+}
+
+func WithApplyExpiresAt(expiresAt time.Time) ApplyOption {
+	return producer.WithApplyExpiresAt(expiresAt)
+}
+
+func WithApplyAttempt(attempt int) ApplyOption {
+	return producer.WithApplyAttempt(attempt)
+}
+
+func WithApplyCreatedAt(createdAt time.Time) ApplyOption {
+	return producer.WithApplyCreatedAt(createdAt)
+}
+
+func WithWorkerQueue(queue QueueName) WorkerOption {
+	return worker.WithWorkerQueue(queue)
+}
+
+func WithWorkerGroup(group string) WorkerOption {
+	return worker.WithWorkerGroup(group)
+}
+
+func WithWorkerConsumer(consumer string) WorkerOption {
+	return worker.WithWorkerConsumer(consumer)
+}
+
+func WithWorkerCodec(codec PayloadCodec) WorkerOption {
+	return worker.WithWorkerCodec(codec)
+}
+
+func WithWorkerConcurrency(concurrency int) WorkerOption {
+	return worker.WithWorkerConcurrency(concurrency)
+}
+
+func WithWorkerReadBatch(readBatch int64) WorkerOption {
+	return worker.WithWorkerReadBatch(readBatch)
+}
+
+func WithWorkerBlock(block time.Duration) WorkerOption {
+	return worker.WithWorkerBlock(block)
+}
+
+func WithWorkerMoveDueLimit(limit int64) WorkerOption {
+	return worker.WithWorkerMoveDueLimit(limit)
+}
+
+func WithWorkerMoveDueEnabled(enabled bool) WorkerOption {
+	return worker.WithWorkerMoveDueEnabled(enabled)
+}
+
+func WithWorkerIdleDelay(delay time.Duration) WorkerOption {
+	return worker.WithWorkerIdleDelay(delay)
+}
+
+func WithWorkerNow(now func() time.Time) WorkerOption {
+	return worker.WithWorkerNow(now)
 }
 
 func NewHandlerContext(ctx context.Context, envelope TaskEnvelope) HandlerContext {

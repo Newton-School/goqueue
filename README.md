@@ -5,11 +5,10 @@ Celery-style developer experience for Go: named tasks, queue routing, immediate
 execution, scheduled execution, retries, workers, periodic jobs, and workflow
 primitives such as groups and chains.
 
-This repository has completed Phase 2. The current public surface establishes
-the module, configuration model, task identity primitives, payload codecs, task
-envelopes, handler contracts, task registration, backend contracts, and a Redis
-backend foundation. Producer and worker execution APIs will be built on top of
-this foundation.
+This repository has completed Phase 4 worker runtime. The public surface now
+includes task identity primitives, producer APIs, Redis backend storage, and a
+production-grade worker runtime with polling, acknowledgements, retries, and task
+state/result persistence.
 
 ## Installation
 
@@ -17,12 +16,13 @@ this foundation.
 go get github.com/Newton-School/goqueue
 ```
 
-## Current Usage
+## Producer Usage
 
 ```go
 package main
 
 import (
+	"context"
 	"log"
 
 	"github.com/Newton-School/goqueue"
@@ -38,11 +38,22 @@ func main() {
 		log.Fatal(err)
 	}
 
+	producer, err := app.NewProducer()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	result, err := producer.ApplyAsync(context.Background(), "email.send_welcome", []any{"u_123"}, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	err = app.RegisterTask("email.send_welcome", goqueue.TaskHandlerFunc(
 		func(ctx goqueue.HandlerContext, payload goqueue.TaskPayload) (goqueue.TaskResult, error) {
 			return goqueue.SucceededResult("queued-model-ready"), nil
 		},
 	))
+	_ = result
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -73,10 +84,54 @@ if err != nil {
 _ = message
 ```
 
+## Worker Runtime
+
+```go
+package main
+
+import (
+	"context"
+	"log"
+
+	"github.com/Newton-School/goqueue"
+)
+
+func main() {
+	app, err := goqueue.New(
+		goqueue.WithRedisURL("redis://localhost:6379/0"),
+		goqueue.WithDefaultQueue("default"),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = app.RegisterTask("email.send_welcome", goqueue.TaskHandlerFunc(
+		func(ctx goqueue.HandlerContext, payload goqueue.TaskPayload) (goqueue.TaskResult, error) {
+			return goqueue.SucceededResult("email sent"), nil
+		},
+	))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	worker, err := app.NewWorker(
+		goqueue.WithWorkerGroup("workers"),
+		goqueue.WithWorkerConsumer("pod-1"),
+		goqueue.WithWorkerConcurrency(4),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := worker.Start(context.Background()); err != nil {
+		log.Fatal(err)
+	}
+}
+```
+
 ## Redis Backend
 
-The Redis backend persists task messages and queue state. It does not run
-workers or producer convenience APIs yet.
+The Redis backend persists task messages and queue state.
 
 ```go
 backend, err := app.NewRedisBackend()
@@ -86,7 +141,7 @@ if err != nil {
 defer backend.Close()
 ```
 
-Phase 2 backend capabilities:
+Phase 4 and earlier backend capabilities:
 
 - Ready queues backed by Redis Streams.
 - Scheduled queues backed by Redis sorted sets.
@@ -129,6 +184,10 @@ suite.
 ├── backend/
 │   Backend interfaces and storage request/response contracts used by future
 │   producers, schedulers, and workers.
+├── producer/
+│   Producer API for enqueuing immediate and scheduled tasks.
+├── worker/
+│   Worker runtime for consuming and executing task messages.
 ├── redisbackend/
 │   Redis Streams, sorted sets, Lua scripts, task state, and result storage.
 ├── docs/superpowers/plans/
@@ -144,8 +203,8 @@ module root.
 
 ## Roadmap
 
-1. Producer API for immediate and delayed tasks.
-2. Worker runtime with acknowledgements and graceful shutdown.
+1. ✅ Producer API for immediate and delayed tasks.
+2. ✅ Worker runtime with acknowledgements and graceful shutdown.
 3. Retries, dead-letter queues, and task expiration.
 4. Scheduler and periodic jobs.
 5. Canvas primitives: chains, groups, and chords.
