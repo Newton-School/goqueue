@@ -86,6 +86,17 @@ const (
 	FailureRetryScheduleFailed = task.FailureRetryScheduleFailed
 )
 
+const (
+	FailureMetadataCategoryKey       = task.FailureMetadataCategoryKey
+	FailureMetadataAttemptKey        = task.FailureMetadataAttemptKey
+	FailureMetadataMaxAttemptsKey    = task.FailureMetadataMaxAttemptsKey
+	FailureMetadataRetryableKey      = task.FailureMetadataRetryableKey
+	FailureMetadataNextRetryAtKey    = task.FailureMetadataNextRetryAtKey
+	FailureMetadataDeadLetteredKey   = task.FailureMetadataDeadLetteredKey
+	FailureMetadataDeadLetteredAtKey = task.FailureMetadataDeadLetteredAtKey
+	FailureMetadataLastErrorKey      = task.FailureMetadataLastErrorKey
+)
+
 func ValidateTaskName(name string) error {
 	return task.ValidateTaskName(name)
 }
