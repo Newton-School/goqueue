@@ -94,6 +94,26 @@ make verify
 `make verify` checks formatting, runs `go vet`, and executes the full test
 suite.
 
+## Package Layout
+
+```text
+.
+├── app.go, config.go, errors.go
+│   Public SDK facade, app construction, and top-level configuration.
+├── task/
+│   Redis-independent task domain model: identifiers, payloads, envelopes,
+│   messages, handlers, results, retry policy, timing, and registry.
+├── docs/superpowers/plans/
+│   Phase implementation plans and acceptance checklists.
+└── .github/workflows/
+    CI verification.
+```
+
+The root package keeps the convenient `goqueue.X` API. The `task` package owns
+the core task model implementation so future Redis backend, worker, scheduler,
+and CLI packages can depend on focused domain packages instead of a crowded
+module root.
+
 ## Roadmap
 
 1. Redis Streams backend for ready queues.

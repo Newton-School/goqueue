@@ -4,7 +4,7 @@
 
 **Goal:** Build the production-grade, Redis-independent task model that future producer, backend, scheduler, and worker phases will share.
 
-**Architecture:** Keep Phase 1 in the root `goqueue` package so the public SDK API is direct and stable. Split the model into small files by responsibility: identifiers, timing, retry policy, payloads, envelopes, handler contracts, registry, and app registration. Every behavior-changing slice gets tests before implementation and a small commit.
+**Architecture:** Keep the public SDK API direct and stable through the root `goqueue` package, while storing the Redis-independent task model in the focused `task` package. Split the model into small files by responsibility: identifiers, timing, retry policy, payloads, envelopes, handler contracts, registry, and app registration. Every behavior-changing slice gets tests before implementation and a small commit.
 
 **Tech Stack:** Go 1.26 standard library only in this phase; no Redis client dependency until Phase 2.
 
