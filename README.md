@@ -141,6 +141,9 @@ failure reason, source stream ID, worker group, consumer, error, and timestamp.
 Pending recovery is opt-in and uses Redis `XAUTOCLAIM` to reclaim messages that
 were read by a worker but never acknowledged.
 
+Failure metadata is stored on `TaskResult.Metadata` using public
+`FailureMetadata*` keys and `Failure*` category constants.
+
 ## Redis Backend
 
 The Redis backend persists task messages and queue state.
