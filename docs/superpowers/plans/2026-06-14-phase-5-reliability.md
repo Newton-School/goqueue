@@ -34,12 +34,12 @@
 - Modify: `backend/stats.go`
 - Modify: `backend/stats_test.go`
 
-- [ ] Add `EnqueueDeadLetter`, `ReadDeadLetters`, and `ClaimStaleReady` to `QueueBackend`.
-- [ ] Add validation for dead-letter enqueue/read requests.
-- [ ] Add validation for stale pending claim requests.
-- [ ] Add `DeadLetterCount` to queue stats.
-- [ ] Verify with `go test ./backend`.
-- [ ] Commit each contract and test slice.
+- [x] Add `EnqueueDeadLetter`, `ReadDeadLetters`, and `ClaimStaleReady` to `QueueBackend`.
+- [x] Add validation for dead-letter enqueue/read requests.
+- [x] Add validation for stale pending claim requests.
+- [x] Add `DeadLetterCount` to queue stats.
+- [x] Verify with `go test ./backend`.
+- [x] Commit each contract and test slice.
 
 ### Task 3: Redis Dead-Letter Backend
 
