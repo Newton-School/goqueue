@@ -56,3 +56,15 @@ func (b *Backend) GetTaskResult(ctx context.Context, taskID task.TaskID) (backen
 
 	return (resultCodec{}).decode(data)
 }
+
+// ForgetTaskResult deletes a stored task result.
+func (b *Backend) ForgetTaskResult(ctx context.Context, taskID task.TaskID) error {
+	if b.client == nil {
+		return fmt.Errorf("%w: redis client is nil", ErrInvalidRedisOptions)
+	}
+	if err := task.ValidateTaskID(taskID.String()); err != nil {
+		return err
+	}
+
+	return b.client.Del(ctx, b.keys.result(taskID.String())).Err()
+}
