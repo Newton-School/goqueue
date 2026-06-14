@@ -1,6 +1,7 @@
 package redisbackend
 
 import (
+	"context"
 	"os"
 	"testing"
 )
@@ -18,4 +19,19 @@ func redisIntegrationOptions(t *testing.T) Options {
 	}
 
 	return NewOptions(redisURL, WithNamespace("goqueue_test"))
+}
+
+func cleanupIntegrationNamespace(ctx context.Context, t *testing.T, b *Backend) {
+	t.Helper()
+
+	keys, err := b.client.Keys(ctx, b.options.Namespace+":*").Result()
+	if err != nil {
+		t.Fatalf("list integration keys: %v", err)
+	}
+	if len(keys) == 0 {
+		return
+	}
+	if err := b.client.Del(ctx, keys...).Err(); err != nil {
+		t.Fatalf("delete integration keys: %v", err)
+	}
 }
