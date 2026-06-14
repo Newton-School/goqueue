@@ -163,6 +163,7 @@ Phase 5 and earlier backend capabilities:
 - Atomic Lua scripts for ready enqueue, scheduled enqueue, and due-task moves.
 - Consumer group creation, stream reads, and acknowledgements.
 - Dead-letter streams for unrecoverable worker failures.
+- Stale pending message recovery through Redis `XAUTOCLAIM`.
 - Task state and task result storage with TTL-ready APIs.
 - Queue stats for ready and scheduled counts.
 
