@@ -41,4 +41,7 @@ var (
 
 	// ErrInvalidTaskHandler is returned when a task handler is nil.
 	ErrInvalidTaskHandler = errors.New("goqueue: invalid task handler")
+
+	// ErrTaskNotFound is returned when a task name has no registered handler.
+	ErrTaskNotFound = errors.New("goqueue: task not found")
 )

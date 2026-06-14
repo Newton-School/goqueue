@@ -40,3 +40,30 @@ func TestTaskRegistryRegisterRejectsNilHandler(t *testing.T) {
 		t.Fatalf("Register error = %v, want ErrInvalidTaskHandler", err)
 	}
 }
+
+func TestTaskRegistryLookupReturnsRegisteredHandler(t *testing.T) {
+	registry := NewTaskRegistry()
+	handler := TaskHandlerFunc(func(HandlerContext, TaskPayload) (TaskResult, error) {
+		return SucceededResult("ok"), nil
+	})
+	if err := registry.Register("email.send", handler); err != nil {
+		t.Fatalf("Register returned error: %v", err)
+	}
+
+	got, err := registry.Lookup("email.send")
+	if err != nil {
+		t.Fatalf("Lookup returned error: %v", err)
+	}
+	if got == nil {
+		t.Fatal("Lookup returned nil handler")
+	}
+}
+
+func TestTaskRegistryLookupRejectsUnknownTask(t *testing.T) {
+	registry := NewTaskRegistry()
+
+	_, err := registry.Lookup("email.send")
+	if !errors.Is(err, ErrTaskNotFound) {
+		t.Fatalf("Lookup error = %v, want ErrTaskNotFound", err)
+	}
+}

@@ -36,3 +36,20 @@ func (r *TaskRegistry) Register(name TaskName, handler TaskHandler) error {
 	r.handlers[name] = handler
 	return nil
 }
+
+// Lookup returns the handler registered for name.
+func (r *TaskRegistry) Lookup(name TaskName) (TaskHandler, error) {
+	if err := ValidateTaskName(name.String()); err != nil {
+		return nil, err
+	}
+
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	handler, exists := r.handlers[name]
+	if !exists {
+		return nil, fmt.Errorf("%w: %s", ErrTaskNotFound, name)
+	}
+
+	return handler, nil
+}
