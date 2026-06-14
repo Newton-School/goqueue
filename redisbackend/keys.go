@@ -18,6 +18,10 @@ func (b keyBuilder) scheduledSet(queue string) string {
 	return fmt.Sprintf("%s:queue:%s:scheduled", b.namespace, queue)
 }
 
+func (b keyBuilder) deadLetterStream(queue string) string {
+	return fmt.Sprintf("%s:queue:%s:dead", b.namespace, queue)
+}
+
 func (b keyBuilder) message(taskID string) string {
 	return fmt.Sprintf("%s:task:%s:message", b.namespace, taskID)
 }
