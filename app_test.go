@@ -55,3 +55,22 @@ func TestAppRegisterTaskStoresHandler(t *testing.T) {
 		t.Fatal("LookupTask returned nil handler")
 	}
 }
+
+func TestAppTaskNamesReturnsRegisteredNames(t *testing.T) {
+	app, err := New(WithRedisURL("redis://localhost:6379/0"))
+	if err != nil {
+		t.Fatalf("New returned error: %v", err)
+	}
+
+	handler := TaskHandlerFunc(func(HandlerContext, TaskPayload) (TaskResult, error) {
+		return SucceededResult(nil), nil
+	})
+	if err := app.RegisterTask("email.send", handler); err != nil {
+		t.Fatalf("RegisterTask returned error: %v", err)
+	}
+
+	names := app.TaskNames()
+	if len(names) != 1 || names[0] != "email.send" {
+		t.Fatalf("TaskNames = %#v, want registered task name", names)
+	}
+}

@@ -33,3 +33,8 @@ func (a *App) RegisterTask(name TaskName, handler TaskHandler) error {
 func (a *App) LookupTask(name TaskName) (TaskHandler, error) {
 	return a.registry.Lookup(name)
 }
+
+// TaskNames returns registered task names in sorted order.
+func (a *App) TaskNames() []TaskName {
+	return a.registry.Names()
+}
