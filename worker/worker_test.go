@@ -602,10 +602,95 @@ func TestWorkerDeadLettersMalformedPayload(t *testing.T) {
 	}
 }
 
+func TestWorkerProcessesClaimedPendingTask(t *testing.T) {
+	registry := task.NewTaskRegistry()
+	if err := registry.Register("email.send", task.TaskHandlerFunc(func(_ task.HandlerContext, _ task.TaskPayload) (task.TaskResult, error) {
+		return task.SucceededResult("claimed"), nil
+	})); err != nil {
+		t.Fatalf("Register returned error: %v", err)
+	}
+
+	now := time.Date(2026, time.June, 14, 9, 0, 0, 0, time.UTC)
+	message := readyMessage(t, task.JSONPayloadCodec{}, testEnvelopeInput{
+		name:      "email.send",
+		queue:     "billing",
+		createdAt: now,
+	})
+	ackCh := make(chan struct{}, 1)
+
+	backend := &fakeBackend{
+		claimStaleReadyFn: makeClaimOnce(message),
+		readReadyFn: func(context.Context, backend.ReadReadyRequest) ([]backend.ReadyMessage, error) {
+			return nil, nil
+		},
+		ackFn: func(_ context.Context, _ backend.AckRequest) error {
+			select {
+			case ackCh <- struct{}{}:
+			default:
+			}
+			return nil
+		},
+	}
+
+	worker, err := NewWorker(
+		backend,
+		registry,
+		WithWorkerGroup("workers"),
+		WithWorkerConsumer("pod-1"),
+		WithWorkerReadBatch(1),
+		WithWorkerBlock(0),
+		WithWorkerIdleDelay(1*time.Millisecond),
+		WithWorkerNow(func() time.Time { return now }),
+		WithWorkerMoveDueEnabled(false),
+		WithWorkerPendingRecoveryEnabled(true),
+		WithWorkerPendingMinIdle(2*time.Minute),
+		WithWorkerPendingClaimBatch(3),
+		WithWorkerPendingClaimInterval(0),
+		WithWorkerQueue("billing"),
+	)
+	if err != nil {
+		t.Fatalf("NewWorker returned error: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- worker.Start(ctx)
+	}()
+
+	select {
+	case <-ackCh:
+	case <-time.After(2 * time.Second):
+		t.Fatal("claimed task was not acknowledged")
+	}
+	cancel()
+
+	select {
+	case gotErr := <-errCh:
+		if gotErr != nil {
+			t.Fatalf("Start returned error: %v", gotErr)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("Start did not return")
+	}
+
+	if len(backend.claimStaleReadyRequests) == 0 {
+		t.Fatal("expected pending claim request")
+	}
+	request := backend.claimStaleReadyRequests[0]
+	if request.MinIdle != 2*time.Minute {
+		t.Fatalf("min idle = %v, want 2m", request.MinIdle)
+	}
+	if request.Count != 3 {
+		t.Fatalf("count = %d, want 3", request.Count)
+	}
+}
+
 type fakeBackend struct {
 	mu                       sync.Mutex
 	ensureGroupRequests      []backend.ConsumerGroupRequest
 	moveDueRequests          []backend.MoveDueScheduledRequest
+	claimStaleReadyRequests  []backend.ClaimStaleReadyRequest
 	readReadyCalls           int
 	setStateRequests         []backend.TaskStateRecord
 	resultRequests           []backend.TaskResultRecord
@@ -616,6 +701,7 @@ type fakeBackend struct {
 	moveDueScheduledErr      error
 	readReadyErr             error
 	readReadyFn              func(context.Context, backend.ReadReadyRequest) ([]backend.ReadyMessage, error)
+	claimStaleReadyFn        func(context.Context, backend.ClaimStaleReadyRequest) ([]backend.ReadyMessage, error)
 	ensureConsumerGroupFn    func(backend.ConsumerGroupRequest) error
 	moveDueFn                func(context.Context, backend.MoveDueScheduledRequest) ([]backend.MovedScheduledMessage, error)
 	ackFn                    func(context.Context, backend.AckRequest) error
@@ -680,7 +766,15 @@ func (f *fakeBackend) ReadReady(_ context.Context, req backend.ReadReadyRequest)
 	return f.readReadyFn(context.Background(), req)
 }
 
-func (f *fakeBackend) ClaimStaleReady(_ context.Context, _ backend.ClaimStaleReadyRequest) ([]backend.ReadyMessage, error) {
+func (f *fakeBackend) ClaimStaleReady(ctx context.Context, req backend.ClaimStaleReadyRequest) ([]backend.ReadyMessage, error) {
+	f.mu.Lock()
+	f.claimStaleReadyRequests = append(f.claimStaleReadyRequests, req)
+	f.mu.Unlock()
+
+	if f.claimStaleReadyFn != nil {
+		return f.claimStaleReadyFn(ctx, req)
+	}
+
 	return nil, nil
 }
 
@@ -797,6 +891,19 @@ func makeReadOnce(message backend.ReadyMessage) func(context.Context, backend.Re
 	called := false
 
 	return func(context.Context, backend.ReadReadyRequest) ([]backend.ReadyMessage, error) {
+		if called {
+			return []backend.ReadyMessage{}, nil
+		}
+		called = true
+
+		return []backend.ReadyMessage{message}, nil
+	}
+}
+
+func makeClaimOnce(message backend.ReadyMessage) func(context.Context, backend.ClaimStaleReadyRequest) ([]backend.ReadyMessage, error) {
+	called := false
+
+	return func(context.Context, backend.ClaimStaleReadyRequest) ([]backend.ReadyMessage, error) {
 		if called {
 			return []backend.ReadyMessage{}, nil
 		}
