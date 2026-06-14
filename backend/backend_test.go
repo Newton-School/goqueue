@@ -14,5 +14,11 @@ func TestQueueBackendInterfaceAcceptsImplementation(t *testing.T) {
 
 type noopBackend struct{}
 
+func (noopBackend) EnqueueReady(context.Context, EnqueueRequest) (EnqueueResponse, error) {
+	return EnqueueResponse{}, nil
+}
+func (noopBackend) EnqueueScheduled(context.Context, EnqueueRequest) (EnqueueResponse, error) {
+	return EnqueueResponse{}, nil
+}
 func (noopBackend) Ping(context.Context) error { return nil }
 func (noopBackend) Close() error               { return nil }
