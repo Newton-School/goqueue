@@ -13,3 +13,9 @@ retry-exhausted failures, retry scheduling failures, and expired tasks.
 Retry-exhausted, unknown, malformed, and retry-schedule failures end as
 `DEAD_LETTERED`. Expired tasks keep the `EXPIRED` state while still receiving a
 DLQ record for inspection.
+
+## Ack Ordering
+
+Workers acknowledge a stream message only after state, result, retry scheduling,
+or DLQ persistence succeeds. If DLQ persistence fails, the message remains
+pending and can be recovered by another worker.
