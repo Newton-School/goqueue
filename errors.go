@@ -35,4 +35,10 @@ var (
 
 	// ErrInvalidPayload is returned when a task payload cannot be encoded or decoded.
 	ErrInvalidPayload = errors.New("goqueue: invalid payload")
+
+	// ErrDuplicateTask is returned when a task name is registered more than once.
+	ErrDuplicateTask = errors.New("goqueue: duplicate task")
+
+	// ErrInvalidTaskHandler is returned when a task handler is nil.
+	ErrInvalidTaskHandler = errors.New("goqueue: invalid task handler")
 )
