@@ -52,13 +52,13 @@
 - Modify: `redisbackend/stats.go`
 - Modify: `redisbackend/stats_test.go`
 
-- [ ] Add dead-letter stream key building.
-- [ ] Encode/decode dead-letter records as JSON stream fields.
-- [ ] Implement `EnqueueDeadLetter` with validation and Redis `XADD`.
-- [ ] Implement `ReadDeadLetters` with bounded `XREVRANGE`.
-- [ ] Include dead-letter stream length in queue stats.
-- [ ] Verify with `go test ./redisbackend`.
-- [ ] Commit each Redis behavior.
+- [x] Add dead-letter stream key building.
+- [x] Encode/decode dead-letter records as JSON stream fields.
+- [x] Implement `EnqueueDeadLetter` with validation and Redis `XADD`.
+- [x] Implement `ReadDeadLetters` with bounded `XREVRANGE`.
+- [x] Include dead-letter stream length in queue stats.
+- [x] Verify with `go test ./redisbackend`.
+- [x] Commit each Redis behavior.
 
 ### Task 4: Redis Pending Recovery Backend
 
