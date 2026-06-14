@@ -842,6 +842,38 @@ func TestWorkerProcessesClaimedPendingTask(t *testing.T) {
 	}
 }
 
+func TestWorkerReturnsPendingRecoveryError(t *testing.T) {
+	registry := task.NewTaskRegistry()
+	backend := &fakeBackend{
+		claimStaleReadyFn: func(context.Context, backend.ClaimStaleReadyRequest) ([]backend.ReadyMessage, error) {
+			return nil, errTask
+		},
+		readReadyFn: func(context.Context, backend.ReadReadyRequest) ([]backend.ReadyMessage, error) {
+			t.Fatal("ReadReady should not run after claim error")
+			return nil, nil
+		},
+	}
+
+	worker, err := NewWorker(
+		backend,
+		registry,
+		WithWorkerGroup("workers"),
+		WithWorkerConsumer("pod-1"),
+		WithWorkerBlock(0),
+		WithWorkerMoveDueEnabled(false),
+		WithWorkerPendingRecoveryEnabled(true),
+		WithWorkerPendingClaimInterval(0),
+	)
+	if err != nil {
+		t.Fatalf("NewWorker returned error: %v", err)
+	}
+
+	err = worker.Start(context.Background())
+	if err == nil {
+		t.Fatal("Start expected pending recovery error")
+	}
+}
+
 type fakeBackend struct {
 	mu                       sync.Mutex
 	ensureGroupRequests      []backend.ConsumerGroupRequest
