@@ -17,11 +17,11 @@
 - Create: `task/failure_metadata_test.go`
 - Modify: `task_exports.go`
 
-- [ ] Add failure category constants for execution errors, malformed messages, unknown tasks, expired tasks, retry exhaustion, and retry scheduling failures.
-- [ ] Add `FailureMetadata` with stable `ToMap` output for task result metadata.
-- [ ] Re-export the type and constants from the root package.
-- [ ] Verify with `go test ./task`.
-- [ ] Commit each narrow addition.
+- [x] Add failure category constants for execution errors, malformed messages, unknown tasks, expired tasks, retry exhaustion, and retry scheduling failures.
+- [x] Add `FailureMetadata` with stable `ToMap` output for task result metadata.
+- [x] Re-export the type and constants from the root package.
+- [x] Verify with `go test ./task`.
+- [x] Commit each narrow addition.
 
 ### Task 2: Backend Reliability Contracts
 
