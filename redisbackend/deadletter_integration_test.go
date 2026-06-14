@@ -36,3 +36,26 @@ func TestIntegrationDeadLetterRoundTrip(t *testing.T) {
 		t.Fatalf("message id = %q, want %q", records[0].Message.ID, record.Message.ID)
 	}
 }
+
+func TestIntegrationQueueStatsIncludesDeadLetters(t *testing.T) {
+	options := redisIntegrationOptions(t)
+	ctx := context.Background()
+	b, err := New(options)
+	if err != nil {
+		t.Fatalf("New returned error: %v", err)
+	}
+	defer b.Close()
+	defer cleanupIntegrationNamespace(ctx, t, b)
+
+	if _, err := b.EnqueueDeadLetter(ctx, testDeadLetterRequest(t)); err != nil {
+		t.Fatalf("EnqueueDeadLetter returned error: %v", err)
+	}
+
+	stats, err := b.QueueStats(ctx, backend.QueueStatsRequest{Queue: "default"})
+	if err != nil {
+		t.Fatalf("QueueStats returned error: %v", err)
+	}
+	if stats.DeadLetterCount != 1 {
+		t.Fatalf("DeadLetterCount = %d, want 1", stats.DeadLetterCount)
+	}
+}
