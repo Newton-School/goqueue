@@ -36,3 +36,11 @@ func TestKeyBuilderTaskKeys(t *testing.T) {
 		t.Fatalf("result key = %q", got)
 	}
 }
+
+func TestKeyBuilderTaskPrefix(t *testing.T) {
+	keys := newKeyBuilder("payments")
+
+	if got := keys.taskPrefix(); got != "payments:task:" {
+		t.Fatalf("taskPrefix = %q, want payments:task:", got)
+	}
+}

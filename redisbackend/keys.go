@@ -22,6 +22,10 @@ func (b keyBuilder) message(taskID string) string {
 	return fmt.Sprintf("%s:task:%s:message", b.namespace, taskID)
 }
 
+func (b keyBuilder) taskPrefix() string {
+	return fmt.Sprintf("%s:task:", b.namespace)
+}
+
 func (b keyBuilder) state(taskID string) string {
 	return fmt.Sprintf("%s:task:%s:state", b.namespace, taskID)
 }
