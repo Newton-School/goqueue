@@ -135,6 +135,9 @@ func main() {
 Phase 5 workers use strict ack ordering: messages are acknowledged only after
 state, result, retry scheduling, or DLQ persistence succeeds.
 
+Unrecoverable tasks are written to Redis-backed dead-letter streams with a
+failure reason, source stream ID, worker group, consumer, error, and timestamp.
+
 ## Redis Backend
 
 The Redis backend persists task messages and queue state.
