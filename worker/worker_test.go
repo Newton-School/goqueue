@@ -325,6 +325,71 @@ func TestWorkerDoesNotRetryWhenMaxAttemptsReached(t *testing.T) {
 	}
 }
 
+func TestWorkerDeadLettersRetryScheduleFailure(t *testing.T) {
+	registry := task.NewTaskRegistry()
+	if err := registry.Register("email.send", task.TaskHandlerFunc(func(_ task.HandlerContext, _ task.TaskPayload) (task.TaskResult, error) {
+		return task.FailedResult(errTask), nil
+	})); err != nil {
+		t.Fatalf("Register returned error: %v", err)
+	}
+
+	now := time.Date(2026, time.June, 14, 9, 0, 0, 0, time.UTC)
+	message := readyMessage(t, task.JSONPayloadCodec{}, testEnvelopeInput{
+		name:  "email.send",
+		queue: "billing",
+		retryPolicy: task.RetryPolicy{
+			MaxAttempts: 2,
+			Backoff:     10 * time.Second,
+		},
+		createdAt: now,
+	})
+
+	backend := &fakeBackend{
+		readReadyFn:         makeReadOnce(message),
+		enqueueScheduledErr: errTask,
+	}
+
+	worker, err := NewWorker(
+		backend,
+		registry,
+		WithWorkerGroup("workers"),
+		WithWorkerConsumer("pod-1"),
+		WithWorkerReadBatch(1),
+		WithWorkerBlock(0),
+		WithWorkerIdleDelay(1*time.Millisecond),
+		WithWorkerNow(func() time.Time { return now }),
+		WithWorkerMoveDueEnabled(false),
+		WithWorkerQueue("billing"),
+	)
+	if err != nil {
+		t.Fatalf("NewWorker returned error: %v", err)
+	}
+
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- worker.Start(context.Background())
+	}()
+
+	select {
+	case gotErr := <-errCh:
+		if gotErr == nil {
+			t.Fatal("Start expected retry schedule failure")
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("Start did not return")
+	}
+
+	if len(backend.deadLetterRequests) != 1 {
+		t.Fatalf("dead letter requests = %d, want 1", len(backend.deadLetterRequests))
+	}
+	if backend.deadLetterRequests[0].Reason != task.FailureRetryScheduleFailed {
+		t.Fatalf("dead letter reason = %q, want %q", backend.deadLetterRequests[0].Reason, task.FailureRetryScheduleFailed)
+	}
+	if len(backend.ackRequests) != 0 {
+		t.Fatalf("ack requests = %d, want 0", len(backend.ackRequests))
+	}
+}
+
 func TestWorkerSkipsExpiredTask(t *testing.T) {
 	registry := task.NewTaskRegistry()
 	if err := registry.Register("email.send", task.TaskHandlerFunc(func(_ task.HandlerContext, _ task.TaskPayload) (task.TaskResult, error) {
