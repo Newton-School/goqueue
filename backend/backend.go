@@ -17,6 +17,7 @@ type QueueBackend interface {
 	SaveTaskResult(context.Context, TaskResultRecord) error
 	GetTaskResult(context.Context, task.TaskID) (TaskResultRecord, error)
 	ForgetTaskResult(context.Context, task.TaskID) error
+	QueueStats(context.Context, QueueStatsRequest) (QueueStats, error)
 	Ping(context.Context) error
 	Close() error
 }

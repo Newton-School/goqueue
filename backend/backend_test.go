@@ -41,5 +41,8 @@ func (noopBackend) GetTaskResult(context.Context, task.TaskID) (TaskResultRecord
 func (noopBackend) ForgetTaskResult(context.Context, task.TaskID) error {
 	return nil
 }
+func (noopBackend) QueueStats(context.Context, QueueStatsRequest) (QueueStats, error) {
+	return QueueStats{}, nil
+}
 func (noopBackend) Ping(context.Context) error { return nil }
 func (noopBackend) Close() error               { return nil }
