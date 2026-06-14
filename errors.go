@@ -23,4 +23,7 @@ var (
 
 	// ErrInvalidPriority is returned when a task priority is outside the supported range.
 	ErrInvalidPriority = errors.New("goqueue: invalid priority")
+
+	// ErrInvalidTaskState is returned when a task state is not recognized.
+	ErrInvalidTaskState = errors.New("goqueue: invalid task state")
 )
