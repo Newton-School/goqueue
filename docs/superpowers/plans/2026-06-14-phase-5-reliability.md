@@ -113,4 +113,4 @@
 - [x] Redis queue stats include dead-letter counts.
 - [x] Public APIs expose reliability options and failure metadata constants.
 - [x] `go test ./...` and `go vet ./...` pass.
-- Phase 5 creates at least 100 commits from the pre-phase baseline.
+- [x] Phase 5 creates at least 100 commits from the pre-phase baseline.
