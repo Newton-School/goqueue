@@ -224,7 +224,7 @@ module root.
 
 1. ✅ Producer API for immediate and delayed tasks.
 2. ✅ Worker runtime with acknowledgements and graceful shutdown.
-3. Retries, dead-letter queues, and task expiration.
+3. ✅ Retries, dead-letter queues, and task expiration.
 4. Scheduler and periodic jobs.
 5. Canvas primitives: chains, groups, and chords.
 6. Observability, inspection APIs, and CLI commands.
