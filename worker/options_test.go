@@ -38,3 +38,23 @@ func TestWorkerReliabilityOptions(t *testing.T) {
 		t.Fatalf("pending claim interval = %v, want 30s", config.pendingClaimInterval)
 	}
 }
+
+func TestWorkerReliabilityOptionsRejectInvalidValues(t *testing.T) {
+	tests := []struct {
+		name string
+		opt  WorkerOption
+	}{
+		{name: "pending min idle", opt: WithWorkerPendingMinIdle(-time.Second)},
+		{name: "pending claim batch", opt: WithWorkerPendingClaimBatch(0)},
+		{name: "pending claim interval", opt: WithWorkerPendingClaimInterval(-time.Second)},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			config := defaultWorkerConfig()
+			if err := tc.opt(&config); err == nil {
+				t.Fatal("option expected error")
+			}
+		})
+	}
+}
