@@ -47,3 +47,25 @@ func TestFailureMetadataToMapIncludesStableFields(t *testing.T) {
 		t.Fatalf("last error = %q, want handler failed", values["goqueue.failure.last_error"])
 	}
 }
+
+func TestFailureMetadataToMapOmitsEmptyOptionalTimestamps(t *testing.T) {
+	values := FailureMetadata{
+		Category:    FailureRetryExhausted,
+		Attempt:     3,
+		MaxAttempts: 3,
+		LastError:   "no attempts left",
+	}.ToMap()
+
+	if _, exists := values[FailureMetadataNextRetryAtKey]; exists {
+		t.Fatalf("next retry timestamp should be omitted when zero")
+	}
+	if _, exists := values[FailureMetadataDeadLetteredAtKey]; exists {
+		t.Fatalf("dead letter timestamp should be omitted when zero")
+	}
+	if values[FailureMetadataRetryableKey] != "false" {
+		t.Fatalf("retryable = %q, want false", values[FailureMetadataRetryableKey])
+	}
+	if values[FailureMetadataDeadLetteredKey] != "false" {
+		t.Fatalf("dead lettered = %q, want false", values[FailureMetadataDeadLetteredKey])
+	}
+}
