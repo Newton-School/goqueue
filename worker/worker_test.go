@@ -476,6 +476,13 @@ func TestWorkerSkipsExpiredTask(t *testing.T) {
 	if backend.deadLetterRequests[0].Reason != task.FailureExpired {
 		t.Fatalf("dead letter reason = %q, want %q", backend.deadLetterRequests[0].Reason, task.FailureExpired)
 	}
+	lastResult := backend.resultRequests[len(backend.resultRequests)-1].Result
+	if lastResult.Metadata[task.FailureMetadataCategoryKey] != string(task.FailureExpired) {
+		t.Fatalf("failure category = %q, want expired", lastResult.Metadata[task.FailureMetadataCategoryKey])
+	}
+	if lastResult.Metadata[task.FailureMetadataDeadLetteredKey] != "true" {
+		t.Fatalf("dead lettered = %q, want true", lastResult.Metadata[task.FailureMetadataDeadLetteredKey])
+	}
 }
 
 func TestWorkerDeadLettersUnknownTask(t *testing.T) {
