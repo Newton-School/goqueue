@@ -6,6 +6,8 @@ import "context"
 type QueueBackend interface {
 	EnqueueReady(context.Context, EnqueueRequest) (EnqueueResponse, error)
 	EnqueueScheduled(context.Context, EnqueueRequest) (EnqueueResponse, error)
+	ReadReady(context.Context, ReadReadyRequest) ([]ReadyMessage, error)
+	Ack(context.Context, AckRequest) error
 	Ping(context.Context) error
 	Close() error
 }

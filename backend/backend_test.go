@@ -20,5 +20,9 @@ func (noopBackend) EnqueueReady(context.Context, EnqueueRequest) (EnqueueRespons
 func (noopBackend) EnqueueScheduled(context.Context, EnqueueRequest) (EnqueueResponse, error) {
 	return EnqueueResponse{}, nil
 }
-func (noopBackend) Ping(context.Context) error { return nil }
-func (noopBackend) Close() error               { return nil }
+func (noopBackend) ReadReady(context.Context, ReadReadyRequest) ([]ReadyMessage, error) {
+	return nil, nil
+}
+func (noopBackend) Ack(context.Context, AckRequest) error { return nil }
+func (noopBackend) Ping(context.Context) error            { return nil }
+func (noopBackend) Close() error                          { return nil }
