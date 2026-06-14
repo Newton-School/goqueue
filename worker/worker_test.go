@@ -455,6 +455,58 @@ func TestWorkerDeadLettersUnknownTask(t *testing.T) {
 	}
 }
 
+func TestWorkerDoesNotAckWhenDeadLetterFails(t *testing.T) {
+	registry := task.NewTaskRegistry()
+	now := time.Date(2026, time.June, 14, 9, 0, 0, 0, time.UTC)
+	message := readyMessage(t, task.JSONPayloadCodec{}, testEnvelopeInput{
+		name:      "email.missing",
+		queue:     "billing",
+		createdAt: now,
+	})
+
+	backend := &fakeBackend{
+		readReadyFn:   makeReadOnce(message),
+		deadLetterErr: errTask,
+	}
+
+	worker, err := NewWorker(
+		backend,
+		registry,
+		WithWorkerGroup("workers"),
+		WithWorkerConsumer("pod-1"),
+		WithWorkerReadBatch(1),
+		WithWorkerBlock(0),
+		WithWorkerIdleDelay(1*time.Millisecond),
+		WithWorkerNow(func() time.Time { return now }),
+		WithWorkerMoveDueEnabled(false),
+		WithWorkerQueue("billing"),
+	)
+	if err != nil {
+		t.Fatalf("NewWorker returned error: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- worker.Start(ctx)
+	}()
+
+	select {
+	case gotErr := <-errCh:
+		if gotErr == nil {
+			t.Fatal("Start expected dead letter error")
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("Start did not return")
+	}
+
+	if len(backend.ackRequests) != 0 {
+		t.Fatalf("ack requests = %d, want 0", len(backend.ackRequests))
+	}
+}
+
 type fakeBackend struct {
 	mu                       sync.Mutex
 	ensureGroupRequests      []backend.ConsumerGroupRequest
@@ -474,6 +526,7 @@ type fakeBackend struct {
 	ackFn                    func(context.Context, backend.AckRequest) error
 	setTaskStateErr          error
 	saveTaskResultErr        error
+	deadLetterErr            error
 	enqueueScheduledErr      error
 	enqueueScheduledFn       func(context.Context, backend.EnqueueRequest) (backend.EnqueueResponse, error)
 }
@@ -552,6 +605,10 @@ func (f *fakeBackend) EnqueueDeadLetter(_ context.Context, req backend.DeadLette
 	f.mu.Lock()
 	f.deadLetterRequests = append(f.deadLetterRequests, req)
 	f.mu.Unlock()
+
+	if f.deadLetterErr != nil {
+		return backend.DeadLetterRecord{}, f.deadLetterErr
+	}
 
 	return backend.DeadLetterRecord{
 		StreamID: "dead-1",
