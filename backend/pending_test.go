@@ -31,3 +31,28 @@ func TestClaimStaleReadyRequestRejectsMissingGroup(t *testing.T) {
 		t.Fatal("Validate expected error for missing group")
 	}
 }
+
+func TestClaimStaleReadyRequestRejectsMissingConsumer(t *testing.T) {
+	request := ClaimStaleReadyRequest{
+		Queue:   "default",
+		Group:   "workers",
+		MinIdle: time.Minute,
+	}
+
+	if err := request.Validate(); err == nil {
+		t.Fatal("Validate expected error for missing consumer")
+	}
+}
+
+func TestClaimStaleReadyRequestRejectsNegativeMinIdle(t *testing.T) {
+	request := ClaimStaleReadyRequest{
+		Queue:    "default",
+		Group:    "workers",
+		Consumer: "pod-2",
+		MinIdle:  -time.Second,
+	}
+
+	if err := request.Validate(); err == nil {
+		t.Fatal("Validate expected error for negative min idle")
+	}
+}
