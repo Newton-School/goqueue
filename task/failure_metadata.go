@@ -61,3 +61,15 @@ func (m FailureMetadata) ToMap() map[string]string {
 	}
 	return values
 }
+
+// MergeFailureMetadata overlays failure metadata without mutating the input map.
+func MergeFailureMetadata(existing map[string]string, failure FailureMetadata) map[string]string {
+	merged := make(map[string]string, len(existing)+8)
+	for key, value := range existing {
+		merged[key] = value
+	}
+	for key, value := range failure.ToMap() {
+		merged[key] = value
+	}
+	return merged
+}
