@@ -15,6 +15,9 @@ func TestNewBuildsBackendWithValidatedOptions(t *testing.T) {
 	if backend == nil {
 		t.Fatal("New returned nil backend")
 	}
+	if backend.keys.readyStream("default") != "goqueue:queue:default:ready" {
+		t.Fatalf("backend keys were not initialized")
+	}
 }
 
 func TestNewRejectsInvalidOptions(t *testing.T) {

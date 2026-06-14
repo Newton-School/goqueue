@@ -6,6 +6,7 @@ import "github.com/redis/go-redis/v9"
 type Backend struct {
 	options Options
 	client  redis.UniversalClient
+	keys    keyBuilder
 }
 
 // New creates a Redis backend.
@@ -14,7 +15,10 @@ func New(options Options, opts ...BackendOption) (*Backend, error) {
 		return nil, err
 	}
 
-	backend := &Backend{options: options}
+	backend := &Backend{
+		options: options,
+		keys:    newKeyBuilder(options.Namespace),
+	}
 	for _, opt := range opts {
 		if opt != nil {
 			opt(backend)
