@@ -67,3 +67,22 @@ func TestTaskRegistryLookupRejectsUnknownTask(t *testing.T) {
 		t.Fatalf("Lookup error = %v, want ErrTaskNotFound", err)
 	}
 }
+
+func TestTaskRegistryNamesReturnsSortedNames(t *testing.T) {
+	registry := NewTaskRegistry()
+	handler := TaskHandlerFunc(func(HandlerContext, TaskPayload) (TaskResult, error) {
+		return SucceededResult(nil), nil
+	})
+
+	if err := registry.Register("video.transcode", handler); err != nil {
+		t.Fatalf("Register returned error: %v", err)
+	}
+	if err := registry.Register("email.send", handler); err != nil {
+		t.Fatalf("Register returned error: %v", err)
+	}
+
+	names := registry.Names()
+	if len(names) != 2 || names[0] != "email.send" || names[1] != "video.transcode" {
+		t.Fatalf("Names = %#v, want sorted task names", names)
+	}
+}

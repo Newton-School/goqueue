@@ -2,6 +2,7 @@ package goqueue
 
 import (
 	"fmt"
+	"sort"
 	"sync"
 )
 
@@ -52,4 +53,21 @@ func (r *TaskRegistry) Lookup(name TaskName) (TaskHandler, error) {
 	}
 
 	return handler, nil
+}
+
+// Names returns registered task names in sorted order.
+func (r *TaskRegistry) Names() []TaskName {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	names := make([]TaskName, 0, len(r.handlers))
+	for name := range r.handlers {
+		names = append(names, name)
+	}
+
+	sort.Slice(names, func(i, j int) bool {
+		return names[i] < names[j]
+	})
+
+	return names
 }
