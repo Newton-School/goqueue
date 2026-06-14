@@ -1,0 +1,23 @@
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Go build artifacts
+bin/
+dist/
+*.out
+*.test
+coverage.out
+coverage.html
+
+# Dependency and workspace caches
+.cache/
+.tmp/
+vendor/
+
+# Editor and OS metadata
+.DS_Store
+.idea/
+.vscode/
+*.swp
