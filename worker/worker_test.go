@@ -548,8 +548,18 @@ func (f *fakeBackend) Ack(ctx context.Context, req backend.AckRequest) error {
 	return nil
 }
 
-func (f *fakeBackend) EnqueueDeadLetter(_ context.Context, _ backend.DeadLetterRequest) (backend.DeadLetterRecord, error) {
-	return backend.DeadLetterRecord{}, nil
+func (f *fakeBackend) EnqueueDeadLetter(_ context.Context, req backend.DeadLetterRequest) (backend.DeadLetterRecord, error) {
+	f.mu.Lock()
+	f.deadLetterRequests = append(f.deadLetterRequests, req)
+	f.mu.Unlock()
+
+	return backend.DeadLetterRecord{
+		StreamID: "dead-1",
+		Message:  req.Message,
+		Reason:   req.Reason,
+		Error:    req.Error,
+		FailedAt: req.FailedAt,
+	}, nil
 }
 
 func (f *fakeBackend) ReadDeadLetters(_ context.Context, _ backend.ReadDeadLettersRequest) ([]backend.DeadLetterRecord, error) {

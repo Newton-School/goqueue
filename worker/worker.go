@@ -225,10 +225,10 @@ func (w *Worker) processMessage(ctx context.Context, message backend.ReadyMessag
 	handler, err := w.registry.Lookup(envelope.Name)
 	if err != nil {
 		result := task.FailedResult(err)
-		_ = w.writeState(ctx, envelope.ID, task.TaskFailed, result.Error)
-		_ = w.saveResult(ctx, envelope.ID, result)
-		_ = w.ack(ctx, message.StreamID)
-		return nil
+		if err := w.deadLetterTask(ctx, message.StreamID, envelope, message, task.FailureUnknownTask, result); err != nil {
+			return err
+		}
+		return w.ack(ctx, message.StreamID)
 	}
 
 	if err := w.writeState(ctx, envelope.ID, task.TaskStarted, ""); err != nil {
