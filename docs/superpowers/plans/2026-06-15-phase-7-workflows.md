@@ -52,7 +52,7 @@
 - Create workflow Redis tests and integration tests.
 
 - [x] Store chain metadata and signatures in Redis hashes.
-- [ ] Advance chains atomically and return the next signature at most once.
+- [x] Advance chains atomically and return the next signature at most once.
 - [ ] Store group metadata, task membership, and optional chord callback.
 - [ ] Record group task completion atomically and return a callback at most once.
 - [ ] Verify with `go test ./redisbackend`.
