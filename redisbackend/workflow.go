@@ -3,6 +3,8 @@ package redisbackend
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"time"
 
 	"github.com/Newton-School/goqueue/backend"
 )
@@ -16,7 +18,32 @@ func (b *Backend) SaveWorkflowChain(ctx context.Context, record backend.Workflow
 		return err
 	}
 
-	return fmt.Errorf("%w: workflow chain save not implemented", ErrInvalidRedisMessage)
+	codec := workflowSignatureCodec{}
+	signatures := make(map[string]any, len(record.Signatures))
+	for index, signature := range record.Signatures {
+		encoded, err := codec.encode(signature)
+		if err != nil {
+			return err
+		}
+		signatures[strconv.Itoa(index)] = string(encoded)
+	}
+
+	metaKey := b.keys.workflowChainMeta(record.ID)
+	signaturesKey := b.keys.workflowChainSignatures(record.ID)
+	ttl := b.options.MessageTTL
+	pipe := b.client.TxPipeline()
+	pipe.HSet(ctx, metaKey, map[string]any{
+		"total":            len(record.Signatures),
+		"completed_index":  -1,
+		"dispatched_index": 0,
+		"created_at":       record.CreatedAt.UTC().Format(time.RFC3339Nano),
+	})
+	pipe.HSet(ctx, signaturesKey, signatures)
+	pipe.Expire(ctx, metaKey, ttl)
+	pipe.Expire(ctx, signaturesKey, ttl)
+
+	_, err := pipe.Exec(ctx)
+	return err
 }
 
 // AdvanceWorkflowChain records a completed chain step and returns the next signature.
