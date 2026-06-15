@@ -64,3 +64,13 @@ func TestRecordWorkflowGroupCompletedScriptGuardsDuplicateCallbacks(t *testing.T
 		}
 	}
 }
+
+func TestRecordWorkflowGroupCompletedScriptExpiresCompletedSet(t *testing.T) {
+	script := recordWorkflowGroupCompletedScript()
+
+	for _, fragment := range []string{"redis.call('EXPIRE', KEYS[2], ARGV[4])", "SADD"} {
+		if !strings.Contains(script, fragment) {
+			t.Fatalf("group progress script missing %q in %s", fragment, script)
+		}
+	}
+}

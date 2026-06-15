@@ -97,6 +97,7 @@ if added == 0 then
   end
   return {total, completed, failed, 1, succeededDuplicate, ''}
 end
+redis.call('EXPIRE', KEYS[2], ARGV[4])
 if ARGV[2] == 'SUCCEEDED' then
   completed = redis.call('HINCRBY', KEYS[1], 'completed', 1)
 else

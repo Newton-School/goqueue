@@ -132,6 +132,7 @@ func (b *Backend) RecordWorkflowTaskCompleted(ctx context.Context, request backe
 		request.TaskID.String(),
 		request.State.String(),
 		request.CompletedAt.UTC().Format(time.RFC3339Nano),
+		ttlSeconds(b.options.MessageTTL),
 	).Slice()
 	if err != nil {
 		return backend.WorkflowGroupProgress{}, err
