@@ -131,6 +131,52 @@ func main() {
 }
 ```
 
+## Scheduler Runtime
+
+```go
+package main
+
+import (
+	"context"
+	"log"
+	"time"
+
+	"github.com/Newton-School/goqueue"
+)
+
+func main() {
+	app, err := goqueue.New(
+		goqueue.WithRedisURL("redis://localhost:6379/0"),
+		goqueue.WithDefaultQueue("default"),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	scheduler, err := app.NewScheduler(
+		goqueue.WithSchedulerIdentity("scheduler-pod-1"),
+		goqueue.WithSchedulerPollInterval(time.Second),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = scheduler.RegisterPeriodicTask(context.Background(), goqueue.PeriodicTask{
+		Name:     "welcome-email",
+		TaskName: "email.send",
+		Schedule: goqueue.Every(10 * time.Minute),
+		Args:     []any{"u_123"},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := scheduler.Start(context.Background()); err != nil {
+		log.Fatal(err)
+	}
+}
+```
+
 ## Reliability
 
 Phase 5 workers use strict ack ordering: messages are acknowledged only after
