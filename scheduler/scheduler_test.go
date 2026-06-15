@@ -167,6 +167,12 @@ func TestSchedulerPollOnceDispatchesDuePeriodicTask(t *testing.T) {
 	if enqueued.Queue != record.Queue.String() {
 		t.Fatalf("enqueued queue = %q, want %q", enqueued.Queue, record.Queue)
 	}
+	if enqueued.Metadata[PeriodicMetadataNameKey] != record.Name {
+		t.Fatalf("periodic metadata name = %q, want %q", enqueued.Metadata[PeriodicMetadataNameKey], record.Name)
+	}
+	if enqueued.Metadata[PeriodicMetadataDueAtKey] != now.Format(time.RFC3339Nano) {
+		t.Fatalf("periodic metadata due at = %q, want %q", enqueued.Metadata[PeriodicMetadataDueAtKey], now.Format(time.RFC3339Nano))
+	}
 	if len(backend.markRequests) != 1 {
 		t.Fatalf("mark calls = %d, want 1", len(backend.markRequests))
 	}

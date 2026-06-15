@@ -127,7 +127,11 @@ func (s *Scheduler) PollOnce(ctx context.Context) (int, error) {
 			copyAnySlice(definition.Args),
 			copyAnyMap(definition.Kwargs),
 			producer.WithApplyQueue(definition.Queue),
-			producer.WithApplyMetadata(copyStringMap(definition.Metadata)),
+			producer.WithApplyMetadata(periodicDispatchMetadata(
+				definition.Metadata,
+				due.Record.Name,
+				now.Format(time.RFC3339Nano),
+			)),
 			producer.WithApplyPriority(definition.Priority),
 			producer.WithApplyRetryPolicy(definition.RetryPolicy),
 			producer.WithApplyCreatedAt(now),
