@@ -130,6 +130,25 @@ func TestCanvasApplyChainStoresChainBeforeDispatch(t *testing.T) {
 	}
 }
 
+func TestCanvasApplyChainDoesNotDispatchWhenSaveFails(t *testing.T) {
+	backend := &fakeBackend{saveChainErr: errors.New("save chain")}
+	canvas, err := NewCanvas(backend, WithCanvasDefaultQueue("critical"))
+	if err != nil {
+		t.Fatalf("NewCanvas returned error: %v", err)
+	}
+	first := validSignature()
+	second := validSignature()
+	second.Name = "email.audit"
+
+	_, err = canvas.ApplyChain(context.Background(), Chain{Signatures: []Signature{first, second}})
+	if err == nil {
+		t.Fatal("ApplyChain expected error")
+	}
+	if len(backend.enqueueReadyRequests) != 0 {
+		t.Fatalf("enqueue calls = %d, want 0", len(backend.enqueueReadyRequests))
+	}
+}
+
 func TestCanvasApplyGroupStoresGroupAndDispatchesChildren(t *testing.T) {
 	backend := &fakeBackend{}
 	canvas, err := NewCanvas(backend, WithCanvasDefaultQueue("critical"))
@@ -242,6 +261,7 @@ type fakeBackend struct {
 	setStateRequests     []backend.TaskStateRecord
 	savedChains          []backend.WorkflowChainRecord
 	savedGroups          []backend.WorkflowGroupRecord
+	saveChainErr         error
 	saveGroupErr         error
 }
 
@@ -288,6 +308,9 @@ func (f *fakeBackend) MarkPeriodicTaskDispatched(context.Context, backend.MarkPe
 func (f *fakeBackend) SaveWorkflowChain(_ context.Context, record backend.WorkflowChainRecord) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
+	if f.saveChainErr != nil {
+		return f.saveChainErr
+	}
 	f.savedChains = append(f.savedChains, record)
 	return nil
 }
