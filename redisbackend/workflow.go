@@ -121,5 +121,21 @@ func (b *Backend) RecordWorkflowTaskCompleted(ctx context.Context, request backe
 		return backend.WorkflowGroupProgress{}, err
 	}
 
-	return backend.WorkflowGroupProgress{}, fmt.Errorf("%w: workflow group progress not implemented", ErrInvalidRedisMessage)
+	values, err := redis.NewScript(recordWorkflowGroupCompletedScript()).Run(
+		ctx,
+		b.client,
+		[]string{
+			b.keys.workflowGroupMeta(request.GroupID),
+			b.keys.workflowGroupCompleted(request.GroupID),
+			b.keys.workflowGroupCallback(request.GroupID),
+		},
+		request.TaskID.String(),
+		request.State.String(),
+		request.CompletedAt.UTC().Format(time.RFC3339Nano),
+	).Slice()
+	if err != nil {
+		return backend.WorkflowGroupProgress{}, err
+	}
+
+	return parseWorkflowGroupProgress(request.GroupID, values)
 }
