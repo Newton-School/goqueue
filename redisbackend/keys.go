@@ -22,6 +22,18 @@ func (b keyBuilder) deadLetterStream(queue string) string {
 	return fmt.Sprintf("%s:queue:%s:dead", b.namespace, queue)
 }
 
+func (b keyBuilder) periodicDefinitionsHash() string {
+	return fmt.Sprintf("%s:scheduler:periodic:definitions", b.namespace)
+}
+
+func (b keyBuilder) periodicDueSet() string {
+	return fmt.Sprintf("%s:scheduler:periodic:due", b.namespace)
+}
+
+func (b keyBuilder) periodicLease(name string) string {
+	return fmt.Sprintf("%s:scheduler:periodic:%s:lease", b.namespace, name)
+}
+
 func (b keyBuilder) message(taskID string) string {
 	return fmt.Sprintf("%s:task:%s:message", b.namespace, taskID)
 }
