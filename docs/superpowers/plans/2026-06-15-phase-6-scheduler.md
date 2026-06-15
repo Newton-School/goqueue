@@ -36,7 +36,7 @@
 - [x] Add `UpsertPeriodicTask`, `DeletePeriodicTask`, `ListDuePeriodicTasks`, and `MarkPeriodicTaskDispatched` backend contracts.
 - [x] Add validation for periodic storage, due scans, and dispatch marking.
 - [x] Update the backend interface acceptance test.
-- [ ] Verify with `go test ./backend`.
+- [x] Verify with `go test ./backend`.
 - [ ] Commit each contract slice.
 
 ### Task 3: Redis Schedule Persistence
