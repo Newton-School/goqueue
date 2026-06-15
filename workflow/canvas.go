@@ -157,6 +157,50 @@ func (c *Canvas) ApplyGroup(ctx context.Context, group Group) (GroupResult, erro
 	return GroupResult{GroupID: groupID, TaskIDs: taskIDs}, nil
 }
 
+// ApplyChord stores a chord header group and dispatches all header signatures.
+func (c *Canvas) ApplyChord(ctx context.Context, chord Chord) (ChordResult, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	groupID, err := newWorkflowID()
+	if err != nil {
+		return ChordResult{}, err
+	}
+	normalized, err := chord.Normalize(c.defaultQueue)
+	if err != nil {
+		return ChordResult{}, err
+	}
+
+	taskIDs, err := generateTaskIDs(len(normalized.Header.Signatures))
+	if err != nil {
+		return ChordResult{}, err
+	}
+	record, err := normalized.Header.toBackendRecord(groupID.String(), c.defaultQueue, taskIDs, &normalized.Callback, c.now())
+	if err != nil {
+		return ChordResult{}, err
+	}
+	if err := c.backend.SaveWorkflowGroup(ctx, record); err != nil {
+		return ChordResult{}, err
+	}
+
+	for index, signature := range normalized.Header.Signatures {
+		signatureRecord, err := signature.toBackendRecord(c.defaultQueue)
+		if err != nil {
+			return ChordResult{}, err
+		}
+		if _, err := c.applyRecord(ctx, signatureRecord, taskIDs[index], map[string]string{
+			MetadataKindKey:       WorkflowKindChord,
+			MetadataGroupIDKey:    groupID.String(),
+			MetadataChordIDKey:    groupID.String(),
+			MetadataGroupIndexKey: workflowIndexMetadata(index),
+		}); err != nil {
+			return ChordResult{}, err
+		}
+	}
+
+	return ChordResult{GroupID: groupID, TaskIDs: taskIDs}, nil
+}
+
 func (c *Canvas) applyRecord(
 	ctx context.Context,
 	record backend.WorkflowSignatureRecord,

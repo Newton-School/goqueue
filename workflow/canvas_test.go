@@ -168,6 +168,50 @@ func TestCanvasApplyGroupStoresGroupAndDispatchesChildren(t *testing.T) {
 	}
 }
 
+func TestCanvasApplyChordStoresCallbackAndDispatchesHeader(t *testing.T) {
+	backend := &fakeBackend{}
+	canvas, err := NewCanvas(backend, WithCanvasDefaultQueue("critical"))
+	if err != nil {
+		t.Fatalf("NewCanvas returned error: %v", err)
+	}
+	header := validSignature()
+	header.Queue = ""
+	callback := validSignature()
+	callback.Name = "email.complete"
+	callback.Queue = ""
+
+	result, err := canvas.ApplyChord(context.Background(), Chord{
+		Header:   Group{Signatures: []Signature{header}},
+		Callback: callback,
+	})
+	if err != nil {
+		t.Fatalf("ApplyChord returned error: %v", err)
+	}
+
+	if result.GroupID == "" || len(result.TaskIDs) != 1 {
+		t.Fatalf("result = %+v, want group id and one task id", result)
+	}
+	if len(backend.savedGroups) != 1 {
+		t.Fatalf("saved groups = %d, want 1", len(backend.savedGroups))
+	}
+	if backend.savedGroups[0].Callback == nil {
+		t.Fatal("saved group callback should be set")
+	}
+	if backend.savedGroups[0].Callback.Name != "email.complete" {
+		t.Fatalf("callback name = %q, want email.complete", backend.savedGroups[0].Callback.Name)
+	}
+	message := backend.enqueueReadyRequests[0].Message
+	if message.Metadata[MetadataKindKey] != WorkflowKindChord {
+		t.Fatalf("workflow kind = %q, want chord", message.Metadata[MetadataKindKey])
+	}
+	if message.Metadata[MetadataChordIDKey] != result.GroupID.String() {
+		t.Fatalf("chord id = %q, want group id", message.Metadata[MetadataChordIDKey])
+	}
+	if message.Metadata[MetadataGroupIDKey] != result.GroupID.String() {
+		t.Fatalf("group id = %q, want group id", message.Metadata[MetadataGroupIDKey])
+	}
+}
+
 type fakeBackend struct {
 	mu                   sync.Mutex
 	enqueueReadyRequests []backend.EnqueueRequest
