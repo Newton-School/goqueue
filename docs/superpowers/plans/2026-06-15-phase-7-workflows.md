@@ -37,7 +37,7 @@
 
 - [x] Add workflow signature storage records.
 - [x] Add chain save/advance contracts.
-- [ ] Add group save/progress contracts.
+- [x] Add group save/progress contracts.
 - [ ] Add validation for workflow IDs, indexes, terminal states, and callbacks.
 - [ ] Verify with `go test ./backend`.
 - [ ] Commit each contract slice.
