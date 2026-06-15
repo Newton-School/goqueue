@@ -1,6 +1,7 @@
 package scheduler
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
@@ -68,6 +69,19 @@ func NewScheduler(queueBackend backend.QueueBackend, opts ...SchedulerOption) (*
 		codec:        config.codec,
 		now:          config.now,
 	}, nil
+}
+
+// RegisterPeriodicTask stores or updates a periodic task definition.
+func (s *Scheduler) RegisterPeriodicTask(ctx context.Context, definition PeriodicTask) error {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	record, err := definition.toBackendRecord(s.defaultQueue, s.now())
+	if err != nil {
+		return err
+	}
+
+	return s.backend.UpsertPeriodicTask(ctx, backend.UpsertPeriodicTaskRequest{Record: record})
 }
 
 func newSchedulerIdentity() (string, error) {

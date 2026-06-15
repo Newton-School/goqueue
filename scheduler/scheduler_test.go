@@ -63,8 +63,43 @@ func TestNewSchedulerGeneratesIdentity(t *testing.T) {
 	}
 }
 
+func TestSchedulerRegisterPeriodicTaskUpsertsBackendRecord(t *testing.T) {
+	now := time.Date(2026, time.June, 15, 10, 0, 0, 0, time.UTC)
+	backend := &fakeBackend{}
+	scheduler, err := NewScheduler(
+		backend,
+		WithSchedulerIdentity("scheduler-1"),
+		WithSchedulerDefaultQueue("critical"),
+		WithSchedulerNow(func() time.Time { return now }),
+	)
+	if err != nil {
+		t.Fatalf("NewScheduler returned error: %v", err)
+	}
+
+	definition := validPeriodicTask()
+	definition.Queue = ""
+	if err := scheduler.RegisterPeriodicTask(context.Background(), definition); err != nil {
+		t.Fatalf("RegisterPeriodicTask returned error: %v", err)
+	}
+
+	if len(backend.upsertRequests) != 1 {
+		t.Fatalf("upsert calls = %d, want 1", len(backend.upsertRequests))
+	}
+	record := backend.upsertRequests[0].Record
+	if record.Name != definition.Name.String() {
+		t.Fatalf("record name = %q, want %q", record.Name, definition.Name)
+	}
+	if record.Queue != "critical" {
+		t.Fatalf("record queue = %q, want critical", record.Queue)
+	}
+	if !record.NextDueAt.Equal(now.Add(10 * time.Minute)) {
+		t.Fatalf("next due = %v, want interval after now", record.NextDueAt)
+	}
+}
+
 type fakeBackend struct {
-	mu sync.Mutex
+	mu             sync.Mutex
+	upsertRequests []backend.UpsertPeriodicTaskRequest
 }
 
 func (f *fakeBackend) EnqueueReady(context.Context, backend.EnqueueRequest) (backend.EnqueueResponse, error) {
@@ -92,7 +127,10 @@ func (f *fakeBackend) EnqueueDeadLetter(context.Context, backend.DeadLetterReque
 func (f *fakeBackend) ReadDeadLetters(context.Context, backend.ReadDeadLettersRequest) ([]backend.DeadLetterRecord, error) {
 	return nil, nil
 }
-func (f *fakeBackend) UpsertPeriodicTask(context.Context, backend.UpsertPeriodicTaskRequest) error {
+func (f *fakeBackend) UpsertPeriodicTask(_ context.Context, request backend.UpsertPeriodicTaskRequest) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.upsertRequests = append(f.upsertRequests, request)
 	return nil
 }
 func (f *fakeBackend) DeletePeriodicTask(context.Context, backend.DeletePeriodicTaskRequest) error {
