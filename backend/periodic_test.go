@@ -180,6 +180,69 @@ func TestDuePeriodicTaskValidateRequiresLockedUntil(t *testing.T) {
 	}
 }
 
+func TestMarkPeriodicTaskDispatchedRequestValidateAcceptsCompleteRequest(t *testing.T) {
+	request := validMarkPeriodicTaskDispatchedRequest()
+
+	if err := request.Validate(); err != nil {
+		t.Fatalf("Validate returned error: %v", err)
+	}
+}
+
+func TestMarkPeriodicTaskDispatchedRequestValidateRequiresName(t *testing.T) {
+	request := validMarkPeriodicTaskDispatchedRequest()
+	request.Name = ""
+
+	if err := request.Validate(); !errors.Is(err, ErrInvalidBackendRequest) {
+		t.Fatalf("Validate error = %v, want ErrInvalidBackendRequest", err)
+	}
+}
+
+func TestMarkPeriodicTaskDispatchedRequestValidateRequiresLockToken(t *testing.T) {
+	request := validMarkPeriodicTaskDispatchedRequest()
+	request.LockToken = ""
+
+	if err := request.Validate(); !errors.Is(err, ErrInvalidBackendRequest) {
+		t.Fatalf("Validate error = %v, want ErrInvalidBackendRequest", err)
+	}
+}
+
+func TestMarkPeriodicTaskDispatchedRequestValidateRequiresTaskID(t *testing.T) {
+	request := validMarkPeriodicTaskDispatchedRequest()
+	request.DispatchedTaskID = ""
+
+	if err := request.Validate(); !errors.Is(err, task.ErrInvalidTaskID) {
+		t.Fatalf("Validate error = %v, want ErrInvalidTaskID", err)
+	}
+}
+
+func TestMarkPeriodicTaskDispatchedRequestValidateRequiresDispatchedAt(t *testing.T) {
+	request := validMarkPeriodicTaskDispatchedRequest()
+	request.DispatchedAt = time.Time{}
+
+	if err := request.Validate(); !errors.Is(err, ErrInvalidBackendRequest) {
+		t.Fatalf("Validate error = %v, want ErrInvalidBackendRequest", err)
+	}
+}
+
+func TestMarkPeriodicTaskDispatchedRequestValidateRequiresNextDueAt(t *testing.T) {
+	request := validMarkPeriodicTaskDispatchedRequest()
+	request.NextDueAt = time.Time{}
+
+	if err := request.Validate(); !errors.Is(err, ErrInvalidBackendRequest) {
+		t.Fatalf("Validate error = %v, want ErrInvalidBackendRequest", err)
+	}
+}
+
+func validMarkPeriodicTaskDispatchedRequest() MarkPeriodicTaskDispatchedRequest {
+	return MarkPeriodicTaskDispatchedRequest{
+		Name:             "welcome-email",
+		LockToken:        "token",
+		DispatchedTaskID: "11111111-1111-4111-8111-111111111111",
+		DispatchedAt:     time.Date(2026, time.June, 15, 10, 0, 0, 0, time.UTC),
+		NextDueAt:        time.Date(2026, time.June, 15, 10, 10, 0, 0, time.UTC),
+	}
+}
+
 func validPeriodicTaskRecord() PeriodicTaskRecord {
 	return PeriodicTaskRecord{
 		Name:         "welcome-email",

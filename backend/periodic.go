@@ -49,6 +49,15 @@ type DuePeriodicTask struct {
 	LockedUntil time.Time
 }
 
+// MarkPeriodicTaskDispatchedRequest advances a periodic definition after dispatch.
+type MarkPeriodicTaskDispatchedRequest struct {
+	Name             string
+	LockToken        string
+	DispatchedTaskID task.TaskID
+	DispatchedAt     time.Time
+	NextDueAt        time.Time
+}
+
 // Validate verifies that the upsert request contains a complete record.
 func (r UpsertPeriodicTaskRequest) Validate() error {
 	return r.Record.Validate()
@@ -82,6 +91,30 @@ func (d DuePeriodicTask) Validate() error {
 	}
 	if d.LockedUntil.IsZero() {
 		return fmt.Errorf("%w: locked until is required", ErrInvalidBackendRequest)
+	}
+
+	return nil
+}
+
+// Validate verifies that dispatch marking is tied to a held lease and task ID.
+func (r MarkPeriodicTaskDispatchedRequest) Validate() error {
+	if r.Name == "" {
+		return fmt.Errorf("%w: periodic task name is required", ErrInvalidBackendRequest)
+	}
+	if err := task.ValidateTaskName(r.Name); err != nil {
+		return fmt.Errorf("%w: periodic task name is invalid: %v", ErrInvalidBackendRequest, err)
+	}
+	if r.LockToken == "" {
+		return fmt.Errorf("%w: lock token is required", ErrInvalidBackendRequest)
+	}
+	if err := task.ValidateTaskID(r.DispatchedTaskID.String()); err != nil {
+		return err
+	}
+	if r.DispatchedAt.IsZero() {
+		return fmt.Errorf("%w: dispatched at is required", ErrInvalidBackendRequest)
+	}
+	if r.NextDueAt.IsZero() {
+		return fmt.Errorf("%w: next due time is required", ErrInvalidBackendRequest)
 	}
 
 	return nil
