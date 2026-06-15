@@ -71,7 +71,7 @@
 - [x] Persist workflow state before dispatching workflow task instances.
 - [x] Add workflow metadata to dispatched task instances.
 - [x] Verify with `go test ./workflow`.
-- [ ] Commit each canvas behavior.
+- [x] Commit each canvas behavior.
 
 ### Task 5: Worker Workflow Advancement
 
