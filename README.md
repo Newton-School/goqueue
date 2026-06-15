@@ -247,6 +247,7 @@ Phase 5 and earlier backend capabilities:
 - Stale pending message recovery through Redis `XAUTOCLAIM`.
 - Periodic task definitions backed by Redis hashes and due-time sorted sets.
 - Short-lived Redis leases for multi-pod scheduler coordination.
+- Chain and group workflow state backed by Redis hashes, sets, and Lua scripts.
 - Task state and task result storage with TTL-ready APIs.
 - Queue stats for ready, scheduled, and dead-letter counts.
 
@@ -317,7 +318,7 @@ module root.
 2. ✅ Worker runtime with acknowledgements and graceful shutdown.
 3. ✅ Retries, dead-letter queues, and task expiration.
 4. ✅ Scheduler and periodic jobs.
-5. Canvas primitives: chains, groups, and chords.
+5. ✅ Canvas primitives: chains, groups, and chords.
 6. Observability, inspection APIs, and CLI commands.
 
 ## Security
