@@ -51,7 +51,7 @@
 
 - [x] Store periodic definitions as JSON records in Redis hashes.
 - [x] Index next due times in a Redis sorted set.
-- [ ] Lease due definitions atomically so concurrent scheduler pods do not dispatch the same due occurrence.
+- [x] Lease due definitions atomically so concurrent scheduler pods do not dispatch the same due occurrence.
 - [ ] Mark successful dispatches by advancing the next due time.
 - [ ] Verify with `go test ./redisbackend`.
 - [ ] Commit each Redis behavior.
