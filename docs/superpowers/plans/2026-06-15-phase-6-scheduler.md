@@ -33,7 +33,7 @@
 - Modify: `backend/backend.go`
 - Modify: `backend/backend_test.go`
 
-- [ ] Add `UpsertPeriodicTask`, `DeletePeriodicTask`, `ListDuePeriodicTasks`, and `MarkPeriodicTaskDispatched` backend contracts.
+- [x] Add `UpsertPeriodicTask`, `DeletePeriodicTask`, `ListDuePeriodicTasks`, and `MarkPeriodicTaskDispatched` backend contracts.
 - [ ] Add validation for periodic storage, due scans, and dispatch marking.
 - [ ] Update the backend interface acceptance test.
 - [ ] Verify with `go test ./backend`.
