@@ -69,7 +69,7 @@
 - [x] Register periodic tasks through the backend with deterministic first-run state.
 - [x] Poll due definitions, dispatch task instances through producer, and mark only successful dispatches.
 - [x] Stop cleanly on context cancellation.
-- [ ] Verify with `go test ./scheduler`.
+- [x] Verify with `go test ./scheduler`.
 - [ ] Commit each runtime behavior.
 
 ### Task 5: Public API And Documentation
