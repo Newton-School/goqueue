@@ -194,6 +194,8 @@ func TestSchedulerPollOnceDispatchesDuePeriodicTask(t *testing.T) {
 	scheduler, err := NewScheduler(
 		backend,
 		WithSchedulerIdentity("scheduler-1"),
+		WithSchedulerBatchSize(12),
+		WithSchedulerLockTTL(2*time.Minute),
 		WithSchedulerNow(func() time.Time { return now }),
 	)
 	if err != nil {
@@ -214,6 +216,15 @@ func TestSchedulerPollOnceDispatchesDuePeriodicTask(t *testing.T) {
 	scan := backend.listDueRequests[0]
 	if scan.SchedulerID != "scheduler-1" {
 		t.Fatalf("scheduler id = %q, want scheduler-1", scan.SchedulerID)
+	}
+	if scan.Limit != 12 {
+		t.Fatalf("scan limit = %d, want 12", scan.Limit)
+	}
+	if scan.LockTTL != 2*time.Minute {
+		t.Fatalf("scan lock ttl = %v, want 2m", scan.LockTTL)
+	}
+	if !scan.Now.Equal(now) {
+		t.Fatalf("scan now = %v, want %v", scan.Now, now)
 	}
 	if len(backend.enqueueReadyRequests) != 1 {
 		t.Fatalf("enqueue ready calls = %d, want 1", len(backend.enqueueReadyRequests))
