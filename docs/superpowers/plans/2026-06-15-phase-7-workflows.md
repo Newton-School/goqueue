@@ -85,7 +85,7 @@
 - [x] Dispatch chord callbacks once when a group succeeds.
 - [x] Preserve strict ack ordering by advancing workflows before acknowledgement.
 - [x] Verify with `go test ./worker`.
-- [ ] Commit each worker behavior.
+- [x] Commit each worker behavior.
 
 ### Task 6: Public API And Documentation
 
