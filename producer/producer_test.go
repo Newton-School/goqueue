@@ -81,6 +81,22 @@ func (f *fakeBackend) ReadDeadLetters(_ context.Context, _ backend.ReadDeadLette
 	return nil, nil
 }
 
+func (f *fakeBackend) UpsertPeriodicTask(_ context.Context, _ backend.UpsertPeriodicTaskRequest) error {
+	return nil
+}
+
+func (f *fakeBackend) DeletePeriodicTask(_ context.Context, _ backend.DeletePeriodicTaskRequest) error {
+	return nil
+}
+
+func (f *fakeBackend) ListDuePeriodicTasks(_ context.Context, _ backend.ListDuePeriodicTasksRequest) ([]backend.DuePeriodicTask, error) {
+	return nil, nil
+}
+
+func (f *fakeBackend) MarkPeriodicTaskDispatched(_ context.Context, _ backend.MarkPeriodicTaskDispatchedRequest) error {
+	return nil
+}
+
 func (f *fakeBackend) SetTaskState(_ context.Context, record backend.TaskStateRecord) error {
 	f.setStateRequests = append(f.setStateRequests, record)
 	return f.setStateErr
