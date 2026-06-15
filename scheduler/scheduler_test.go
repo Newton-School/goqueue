@@ -275,6 +275,30 @@ func TestSchedulerStartReturnsWhenContextCanceled(t *testing.T) {
 	}
 }
 
+func TestSchedulerStartPollsImmediately(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	backend := &fakeBackend{
+		listDueHook: func() {
+			cancel()
+		},
+	}
+	scheduler, err := NewScheduler(
+		backend,
+		WithSchedulerIdentity("scheduler-1"),
+		WithSchedulerPollInterval(time.Hour),
+	)
+	if err != nil {
+		t.Fatalf("NewScheduler returned error: %v", err)
+	}
+
+	if err := scheduler.Start(ctx); err != nil {
+		t.Fatalf("Start returned error: %v", err)
+	}
+	if len(backend.listDueRequests) != 1 {
+		t.Fatalf("due scan calls = %d, want 1", len(backend.listDueRequests))
+	}
+}
+
 type fakeBackend struct {
 	mu                   sync.Mutex
 	upsertRequests       []backend.UpsertPeriodicTaskRequest
@@ -285,6 +309,7 @@ type fakeBackend struct {
 	dueTasks             []backend.DuePeriodicTask
 	enqueueReadyErr      error
 	markErr              error
+	listDueHook          func()
 }
 
 func (f *fakeBackend) EnqueueReady(_ context.Context, request backend.EnqueueRequest) (backend.EnqueueResponse, error) {
@@ -334,6 +359,9 @@ func (f *fakeBackend) ListDuePeriodicTasks(_ context.Context, request backend.Li
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.listDueRequests = append(f.listDueRequests, request)
+	if f.listDueHook != nil {
+		f.listDueHook()
+	}
 	return append([]backend.DuePeriodicTask(nil), f.dueTasks...), nil
 }
 func (f *fakeBackend) MarkPeriodicTaskDispatched(_ context.Context, request backend.MarkPeriodicTaskDispatchedRequest) error {
