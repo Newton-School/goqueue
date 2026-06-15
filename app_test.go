@@ -3,6 +3,7 @@ package goqueue
 import (
 	"errors"
 	"testing"
+	"time"
 )
 
 func TestNewReturnsAppWithValidatedConfig(t *testing.T) {
@@ -121,5 +122,23 @@ func TestAppNewSchedulerUsesConfigDefaults(t *testing.T) {
 	}
 	if scheduler == nil {
 		t.Fatal("NewScheduler returned nil")
+	}
+}
+
+func TestRootSchedulerExportsCompile(t *testing.T) {
+	definition := PeriodicTask{
+		Name:     PeriodicTaskName("welcome-email"),
+		TaskName: TaskName("email.send"),
+		Schedule: Every(5 * time.Minute),
+	}
+
+	if err := definition.Validate(); err != nil {
+		t.Fatalf("Validate returned error: %v", err)
+	}
+	if ScheduleKindInterval != "interval" {
+		t.Fatalf("ScheduleKindInterval = %q, want interval", ScheduleKindInterval)
+	}
+	if PeriodicMetadataNameKey == "" || PeriodicMetadataDueAtKey == "" {
+		t.Fatal("periodic metadata keys should be exported")
 	}
 }
