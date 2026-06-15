@@ -108,3 +108,18 @@ func TestAppNewWorkerUsesConfigDefaults(t *testing.T) {
 		t.Fatal("NewWorker returned nil")
 	}
 }
+
+func TestAppNewSchedulerUsesConfigDefaults(t *testing.T) {
+	app, err := New(WithRedisURL("redis://localhost:6379/0"), WithDefaultQueue("billing"))
+	if err != nil {
+		t.Fatalf("New returned error: %v", err)
+	}
+
+	scheduler, err := app.NewScheduler()
+	if err != nil {
+		t.Fatalf("NewScheduler returned error: %v", err)
+	}
+	if scheduler == nil {
+		t.Fatal("NewScheduler returned nil")
+	}
+}

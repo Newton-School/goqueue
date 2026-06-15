@@ -2,6 +2,7 @@ package goqueue
 
 import (
 	"github.com/Newton-School/goqueue/producer"
+	"github.com/Newton-School/goqueue/scheduler"
 	"github.com/Newton-School/goqueue/worker"
 )
 
@@ -72,4 +73,19 @@ func (a *App) NewWorker(opts ...worker.WorkerOption) (*worker.Worker, error) {
 	)
 
 	return worker.NewWorker(backend, a.registry, allOpts...)
+}
+
+// NewScheduler creates a scheduler for periodic task dispatch.
+func (a *App) NewScheduler(opts ...scheduler.SchedulerOption) (*scheduler.Scheduler, error) {
+	backend, err := a.NewRedisBackend()
+	if err != nil {
+		return nil, err
+	}
+
+	allOpts := append(
+		[]scheduler.SchedulerOption{scheduler.WithSchedulerDefaultQueue(QueueName(a.config.DefaultQueue))},
+		opts...,
+	)
+
+	return scheduler.NewScheduler(backend, allOpts...)
 }
