@@ -152,6 +152,31 @@ func (s *Scheduler) PollOnce(ctx context.Context) (int, error) {
 	return dispatched, nil
 }
 
+// Start runs the scheduler loop until ctx is canceled.
+func (s *Scheduler) Start(ctx context.Context) error {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	if err := ctx.Err(); err != nil {
+		return nil
+	}
+
+	ticker := time.NewTicker(s.pollInterval)
+	defer ticker.Stop()
+
+	for {
+		if _, err := s.PollOnce(ctx); err != nil {
+			return err
+		}
+
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-ticker.C:
+		}
+	}
+}
+
 func newSchedulerIdentity() (string, error) {
 	var bytes [8]byte
 	if _, err := rand.Read(bytes[:]); err != nil {

@@ -262,6 +262,19 @@ func TestSchedulerPollOnceReturnsErrorWhenMarkFails(t *testing.T) {
 	}
 }
 
+func TestSchedulerStartReturnsWhenContextCanceled(t *testing.T) {
+	scheduler, err := NewScheduler(&fakeBackend{}, WithSchedulerIdentity("scheduler-1"))
+	if err != nil {
+		t.Fatalf("NewScheduler returned error: %v", err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	if err := scheduler.Start(ctx); err != nil {
+		t.Fatalf("Start returned error: %v", err)
+	}
+}
+
 type fakeBackend struct {
 	mu                   sync.Mutex
 	upsertRequests       []backend.UpsertPeriodicTaskRequest
