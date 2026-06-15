@@ -508,6 +508,18 @@ func (f *fakeBackend) MarkPeriodicTaskDispatched(_ context.Context, request back
 	f.markRequests = append(f.markRequests, request)
 	return f.markErr
 }
+func (f *fakeBackend) SaveWorkflowChain(context.Context, backend.WorkflowChainRecord) error {
+	return nil
+}
+func (f *fakeBackend) AdvanceWorkflowChain(context.Context, backend.AdvanceWorkflowChainRequest) (backend.AdvanceWorkflowChainResponse, error) {
+	return backend.AdvanceWorkflowChainResponse{}, nil
+}
+func (f *fakeBackend) SaveWorkflowGroup(context.Context, backend.WorkflowGroupRecord) error {
+	return nil
+}
+func (f *fakeBackend) RecordWorkflowTaskCompleted(context.Context, backend.RecordWorkflowTaskCompletedRequest) (backend.WorkflowGroupProgress, error) {
+	return backend.WorkflowGroupProgress{}, nil
+}
 func (f *fakeBackend) SetTaskState(context.Context, backend.TaskStateRecord) error {
 	return nil
 }
