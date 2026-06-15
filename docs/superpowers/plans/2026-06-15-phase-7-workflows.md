@@ -67,7 +67,7 @@
 - Create canvas tests.
 
 - [x] Add `Canvas` with default queue, codec, and clock options.
-- [ ] Add `ApplySignature`, `ApplyChain`, `ApplyGroup`, and `ApplyChord`.
+- [x] Add `ApplySignature`, `ApplyChain`, `ApplyGroup`, and `ApplyChord`.
 - [ ] Persist workflow state before dispatching workflow task instances.
 - [ ] Add workflow metadata to dispatched task instances.
 - [ ] Verify with `go test ./workflow`.
