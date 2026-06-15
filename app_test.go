@@ -157,3 +157,30 @@ func TestRootSchedulerExportsCompile(t *testing.T) {
 		t.Fatal("periodic metadata keys should be exported")
 	}
 }
+
+func TestRootWorkflowExportsCompile(t *testing.T) {
+	signature := Signature{
+		Name:  TaskName("email.send"),
+		Queue: QueueName("default"),
+	}
+	_ = signature
+
+	chain := Chain{Signatures: []Signature{{Name: "email.send", Queue: "default"}}}
+	if err := chain.Validate(); err != nil {
+		t.Fatalf("chain Validate returned error: %v", err)
+	}
+	group := Group{Signatures: []Signature{{Name: "email.send", Queue: "default"}}}
+	if err := group.Validate(); err != nil {
+		t.Fatalf("group Validate returned error: %v", err)
+	}
+	chord := Chord{
+		Header:   group,
+		Callback: Signature{Name: "email.done", Queue: "default"},
+	}
+	if err := chord.Validate(); err != nil {
+		t.Fatalf("chord Validate returned error: %v", err)
+	}
+	if WorkflowKindChain != "chain" || WorkflowMetadataKindKey == "" {
+		t.Fatal("workflow constants should be exported")
+	}
+}

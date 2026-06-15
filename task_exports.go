@@ -8,6 +8,7 @@ import (
 	"github.com/Newton-School/goqueue/scheduler"
 	"github.com/Newton-School/goqueue/task"
 	"github.com/Newton-School/goqueue/worker"
+	"github.com/Newton-School/goqueue/workflow"
 )
 
 const (
@@ -60,6 +61,15 @@ type (
 	PeriodicTask      = scheduler.PeriodicTask
 	PeriodicTaskName  = scheduler.PeriodicTaskName
 	IntervalSchedule  = scheduler.IntervalSchedule
+	Signature         = workflow.Signature
+	Chain             = workflow.Chain
+	Group             = workflow.Group
+	Chord             = workflow.Chord
+	Canvas            = workflow.Canvas
+	CanvasOption      = workflow.CanvasOption
+	ChainResult       = workflow.ChainResult
+	GroupResult       = workflow.GroupResult
+	ChordResult       = workflow.ChordResult
 	Worker            = worker.Worker
 	WorkerOption      = worker.WorkerOption
 )
@@ -83,13 +93,26 @@ var (
 	ErrInvalidSchedule     = scheduler.ErrInvalidSchedule
 	ErrInvalidPeriodicTask = scheduler.ErrInvalidPeriodicTask
 	ErrNilSchedulerBackend = scheduler.ErrNilBackend
+	ErrInvalidWorkflow     = workflow.ErrInvalidWorkflow
+	ErrInvalidSignature    = workflow.ErrInvalidSignature
+	ErrNilCanvasBackend    = workflow.ErrNilBackend
 	ErrInvalidWorkerOption = worker.ErrInvalidWorkerOption
 )
 
 const (
-	ScheduleKindInterval     = scheduler.ScheduleKindInterval
-	PeriodicMetadataNameKey  = scheduler.PeriodicMetadataNameKey
-	PeriodicMetadataDueAtKey = scheduler.PeriodicMetadataDueAtKey
+	ScheduleKindInterval             = scheduler.ScheduleKindInterval
+	PeriodicMetadataNameKey          = scheduler.PeriodicMetadataNameKey
+	PeriodicMetadataDueAtKey         = scheduler.PeriodicMetadataDueAtKey
+	WorkflowKindChain                = workflow.WorkflowKindChain
+	WorkflowKindGroup                = workflow.WorkflowKindGroup
+	WorkflowKindChord                = workflow.WorkflowKindChord
+	WorkflowMetadataKindKey          = workflow.MetadataKindKey
+	WorkflowMetadataChainIDKey       = workflow.MetadataChainIDKey
+	WorkflowMetadataChainStepKey     = workflow.MetadataChainStepKey
+	WorkflowMetadataGroupIDKey       = workflow.MetadataGroupIDKey
+	WorkflowMetadataGroupIndexKey    = workflow.MetadataGroupIndexKey
+	WorkflowMetadataChordIDKey       = workflow.MetadataChordIDKey
+	WorkflowMetadataChordCallbackKey = workflow.MetadataChordCallbackKey
 )
 
 const (
@@ -246,6 +269,18 @@ func WithSchedulerCodec(codec PayloadCodec) SchedulerOption {
 
 func WithSchedulerNow(now func() time.Time) SchedulerOption {
 	return scheduler.WithSchedulerNow(now)
+}
+
+func WithCanvasDefaultQueue(queue QueueName) CanvasOption {
+	return workflow.WithCanvasDefaultQueue(queue)
+}
+
+func WithCanvasCodec(codec PayloadCodec) CanvasOption {
+	return workflow.WithCanvasCodec(codec)
+}
+
+func WithCanvasNow(now func() time.Time) CanvasOption {
+	return workflow.WithCanvasNow(now)
 }
 
 func WithWorkerQueue(queue QueueName) WorkerOption {
