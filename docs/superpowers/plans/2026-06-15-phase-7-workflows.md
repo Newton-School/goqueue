@@ -54,7 +54,7 @@
 - [x] Store chain metadata and signatures in Redis hashes.
 - [x] Advance chains atomically and return the next signature at most once.
 - [x] Store group metadata, task membership, and optional chord callback.
-- [ ] Record group task completion atomically and return a callback at most once.
+- [x] Record group task completion atomically and return a callback at most once.
 - [ ] Verify with `go test ./redisbackend`.
 - [ ] Commit each Redis behavior.
 
