@@ -41,3 +41,34 @@ func redisInt(value any) int64 {
 		return 0
 	}
 }
+
+func parseWorkflowGroupProgress(groupID string, values []any) (backend.WorkflowGroupProgress, error) {
+	if len(values) != 6 {
+		return backend.WorkflowGroupProgress{}, fmt.Errorf("%w: workflow group progress response must have 6 values", ErrInvalidRedisMessage)
+	}
+
+	total := int(redisInt(values[0]))
+	completed := int(redisInt(values[1]))
+	failed := int(redisInt(values[2]))
+	progress := backend.WorkflowGroupProgress{
+		GroupID:   groupID,
+		Total:     total,
+		Completed: completed,
+		Failed:    failed,
+		Duplicate: redisInt(values[3]) == 1,
+		Done:      completed+failed >= total && total > 0,
+		Succeeded: redisInt(values[4]) == 1,
+	}
+
+	rawCallback, ok := values[5].(string)
+	if !ok || rawCallback == "" {
+		return progress, nil
+	}
+
+	callback, err := (workflowSignatureCodec{}).decode([]byte(rawCallback))
+	if err != nil {
+		return backend.WorkflowGroupProgress{}, err
+	}
+	progress.Callback = &callback
+	return progress, nil
+}
