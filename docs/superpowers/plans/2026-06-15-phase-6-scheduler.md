@@ -70,7 +70,7 @@
 - [x] Poll due definitions, dispatch task instances through producer, and mark only successful dispatches.
 - [x] Stop cleanly on context cancellation.
 - [x] Verify with `go test ./scheduler`.
-- [ ] Commit each runtime behavior.
+- [x] Commit each runtime behavior.
 
 ### Task 5: Public API And Documentation
 
