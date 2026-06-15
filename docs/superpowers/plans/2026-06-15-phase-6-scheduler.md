@@ -37,7 +37,7 @@
 - [x] Add validation for periodic storage, due scans, and dispatch marking.
 - [x] Update the backend interface acceptance test.
 - [x] Verify with `go test ./backend`.
-- [ ] Commit each contract slice.
+- [x] Commit each contract slice.
 
 ### Task 3: Redis Schedule Persistence
 
