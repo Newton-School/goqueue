@@ -53,6 +53,26 @@ func (p PeriodicTask) Normalize(defaultQueue task.QueueName) (PeriodicTask, erro
 	return normalized, nil
 }
 
+// FirstDueAfter returns the first due time after registration.
+func (p PeriodicTask) FirstDueAfter(now time.Time) time.Time {
+	now = now.UTC()
+	if p.StartAt.IsZero() {
+		return p.Schedule.Next(now)
+	}
+
+	startAt := p.StartAt.UTC()
+	if startAt.After(now) {
+		return startAt
+	}
+
+	return now
+}
+
+// NextDueAfter returns the next due time after a successful dispatch.
+func (p PeriodicTask) NextDueAfter(now time.Time) time.Time {
+	return p.Schedule.Next(now.UTC())
+}
+
 // Validate verifies that the periodic task can be stored and dispatched.
 func (p PeriodicTask) Validate() error {
 	if err := validatePeriodicTaskName(p.Name.String()); err != nil {

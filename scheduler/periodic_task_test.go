@@ -89,6 +89,55 @@ func TestPeriodicTaskNormalizeCopiesMutableFields(t *testing.T) {
 	}
 }
 
+func TestPeriodicTaskFirstDueDefaultsToOneIntervalAfterNow(t *testing.T) {
+	now := time.Date(2026, time.June, 15, 10, 0, 0, 0, time.UTC)
+	definition := validPeriodicTask()
+
+	next := definition.FirstDueAfter(now)
+
+	want := now.Add(10 * time.Minute)
+	if !next.Equal(want) {
+		t.Fatalf("FirstDueAfter = %v, want %v", next, want)
+	}
+}
+
+func TestPeriodicTaskFirstDueUsesFutureStartAt(t *testing.T) {
+	now := time.Date(2026, time.June, 15, 10, 0, 0, 0, time.UTC)
+	startAt := now.Add(2 * time.Minute)
+	definition := validPeriodicTask()
+	definition.StartAt = startAt
+
+	next := definition.FirstDueAfter(now)
+
+	if !next.Equal(startAt) {
+		t.Fatalf("FirstDueAfter = %v, want %v", next, startAt)
+	}
+}
+
+func TestPeriodicTaskFirstDueUsesNowWhenStartAtHasPassed(t *testing.T) {
+	now := time.Date(2026, time.June, 15, 10, 0, 0, 0, time.UTC)
+	definition := validPeriodicTask()
+	definition.StartAt = now.Add(-time.Minute)
+
+	next := definition.FirstDueAfter(now)
+
+	if !next.Equal(now) {
+		t.Fatalf("FirstDueAfter = %v, want %v", next, now)
+	}
+}
+
+func TestPeriodicTaskNextDueAfterUsesSchedule(t *testing.T) {
+	now := time.Date(2026, time.June, 15, 10, 0, 0, 0, time.UTC)
+	definition := validPeriodicTask()
+
+	next := definition.NextDueAfter(now)
+
+	want := now.Add(10 * time.Minute)
+	if !next.Equal(want) {
+		t.Fatalf("NextDueAfter = %v, want %v", next, want)
+	}
+}
+
 func validPeriodicTask() PeriodicTask {
 	return PeriodicTask{
 		Name:        "welcome-email",
