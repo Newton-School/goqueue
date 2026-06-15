@@ -71,3 +71,33 @@ func (c Chain) toBackendRecord(id string, defaultQueue task.QueueName, now time.
 
 	return record, nil
 }
+
+func (g Group) toBackendRecord(
+	id string,
+	defaultQueue task.QueueName,
+	taskIDs []task.TaskID,
+	callback *Signature,
+	now time.Time,
+) (backend.WorkflowGroupRecord, error) {
+	if _, err := g.Normalize(defaultQueue); err != nil {
+		return backend.WorkflowGroupRecord{}, err
+	}
+
+	record := backend.WorkflowGroupRecord{
+		ID:        id,
+		TaskIDs:   append([]task.TaskID(nil), taskIDs...),
+		CreatedAt: now.UTC(),
+	}
+	if callback != nil {
+		callbackRecord, err := callback.toBackendRecord(defaultQueue)
+		if err != nil {
+			return backend.WorkflowGroupRecord{}, err
+		}
+		record.Callback = &callbackRecord
+	}
+	if err := record.Validate(); err != nil {
+		return backend.WorkflowGroupRecord{}, err
+	}
+
+	return record, nil
+}

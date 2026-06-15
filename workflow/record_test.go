@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Newton-School/goqueue/backend"
+	"github.com/Newton-School/goqueue/task"
 )
 
 func TestSignatureToBackendRecordPreservesFields(t *testing.T) {
@@ -71,5 +72,49 @@ func TestChainToBackendRecordUsesProvidedID(t *testing.T) {
 	}
 	if !record.CreatedAt.Equal(now) {
 		t.Fatalf("CreatedAt = %v, want %v", record.CreatedAt, now)
+	}
+}
+
+func TestGroupToBackendRecordUsesTaskIDs(t *testing.T) {
+	group := Group{Signatures: []Signature{validSignature(), validSignature()}}
+	now := time.Date(2026, time.June, 15, 10, 0, 0, 0, time.UTC)
+
+	record, err := group.toBackendRecord("group-1", "default", []task.TaskID{
+		"11111111-1111-4111-8111-111111111111",
+		"22222222-2222-4222-8222-222222222222",
+	}, nil, now)
+	if err != nil {
+		t.Fatalf("toBackendRecord returned error: %v", err)
+	}
+
+	if record.ID != "group-1" {
+		t.Fatalf("ID = %q, want group-1", record.ID)
+	}
+	if len(record.TaskIDs) != 2 {
+		t.Fatalf("task id count = %d, want 2", len(record.TaskIDs))
+	}
+	if record.Callback != nil {
+		t.Fatal("callback should be nil")
+	}
+}
+
+func TestGroupToBackendRecordIncludesCallback(t *testing.T) {
+	group := Group{Signatures: []Signature{validSignature()}}
+	callback := validSignature()
+	callback.Name = "email.complete"
+	now := time.Date(2026, time.June, 15, 10, 0, 0, 0, time.UTC)
+
+	record, err := group.toBackendRecord("group-1", "default", []task.TaskID{
+		"11111111-1111-4111-8111-111111111111",
+	}, &callback, now)
+	if err != nil {
+		t.Fatalf("toBackendRecord returned error: %v", err)
+	}
+
+	if record.Callback == nil {
+		t.Fatal("callback should be set")
+	}
+	if record.Callback.Name != "email.complete" {
+		t.Fatalf("callback name = %q, want email.complete", record.Callback.Name)
 	}
 }
