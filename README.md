@@ -177,6 +177,40 @@ func main() {
 }
 ```
 
+## Canvas Workflows
+
+```go
+canvas, err := app.NewCanvas()
+if err != nil {
+	log.Fatal(err)
+}
+
+chainResult, err := canvas.ApplyChain(context.Background(), goqueue.Chain{
+	Signatures: []goqueue.Signature{
+		{Name: "email.prepare", Args: []any{"u_123"}},
+		{Name: "email.send", Args: []any{"u_123"}},
+	},
+})
+if err != nil {
+	log.Fatal(err)
+}
+
+chordResult, err := canvas.ApplyChord(context.Background(), goqueue.Chord{
+	Header: goqueue.Group{
+		Signatures: []goqueue.Signature{
+			{Name: "email.send", Args: []any{"u_1"}},
+			{Name: "email.send", Args: []any{"u_2"}},
+		},
+	},
+	Callback: goqueue.Signature{Name: "email.report"},
+})
+if err != nil {
+	log.Fatal(err)
+}
+
+_, _ = chainResult, chordResult
+```
+
 ## Reliability
 
 Phase 5 workers use strict ack ordering: messages are acknowledged only after
