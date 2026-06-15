@@ -102,7 +102,7 @@
 - [x] Re-export workflow types, results, options, and metadata constants.
 - [x] Document signature, chain, group, and chord usage.
 - [x] Document Redis workflow state and idempotency behavior.
-- [ ] Verify with `go test ./...` and `go vet ./...`.
+- [x] Verify with `go test ./...` and `go vet ./...`.
 - [ ] Phase 7 creates exactly 100 commits from the pre-phase baseline.
 
 ### Acceptance Criteria
@@ -114,5 +114,5 @@
 - [x] Chord callbacks dispatch once when all group members succeed.
 - [x] Redis state prevents duplicate chain advancement and duplicate chord callbacks.
 - [x] Public root package exports workflow APIs.
-- [ ] `go test ./...` and `go vet ./...` pass.
+- [x] `go test ./...` and `go vet ./...` pass.
 - [ ] Phase 7 creates exactly 100 commits from the Phase 6 baseline.
