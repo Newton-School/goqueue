@@ -98,4 +98,4 @@
 - [x] Redis-backed periodic definitions survive process restarts.
 - [x] Public root package exports the scheduler API.
 - [x] `go test ./...` and `go vet ./...` pass.
-- [ ] Phase 6 creates at least 100 commits from the pre-phase baseline.
+- [x] Phase 6 creates at least 100 commits from the pre-phase baseline.
