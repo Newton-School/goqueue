@@ -24,7 +24,7 @@
 - [x] Add chain validation for ordered task signatures.
 - [x] Add group validation for fan-out task signatures.
 - [x] Add chord validation for group header plus callback signature.
-- [ ] Verify with `go test ./workflow`.
+- [x] Verify with `go test ./workflow`.
 - [ ] Commit each narrow behavior.
 
 ### Task 2: Backend Workflow Contracts
