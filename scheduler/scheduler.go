@@ -84,6 +84,15 @@ func (s *Scheduler) RegisterPeriodicTask(ctx context.Context, definition Periodi
 	return s.backend.UpsertPeriodicTask(ctx, backend.UpsertPeriodicTaskRequest{Record: record})
 }
 
+// DeletePeriodicTask removes a periodic task definition.
+func (s *Scheduler) DeletePeriodicTask(ctx context.Context, name PeriodicTaskName) error {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	return s.backend.DeletePeriodicTask(ctx, backend.DeletePeriodicTaskRequest{Name: name.String()})
+}
+
 func newSchedulerIdentity() (string, error) {
 	var bytes [8]byte
 	if _, err := rand.Read(bytes[:]); err != nil {

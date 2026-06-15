@@ -97,9 +97,29 @@ func TestSchedulerRegisterPeriodicTaskUpsertsBackendRecord(t *testing.T) {
 	}
 }
 
+func TestSchedulerDeletePeriodicTaskDeletesBackendRecord(t *testing.T) {
+	backend := &fakeBackend{}
+	scheduler, err := NewScheduler(backend, WithSchedulerIdentity("scheduler-1"))
+	if err != nil {
+		t.Fatalf("NewScheduler returned error: %v", err)
+	}
+
+	if err := scheduler.DeletePeriodicTask(context.Background(), "welcome-email"); err != nil {
+		t.Fatalf("DeletePeriodicTask returned error: %v", err)
+	}
+
+	if len(backend.deleteRequests) != 1 {
+		t.Fatalf("delete calls = %d, want 1", len(backend.deleteRequests))
+	}
+	if backend.deleteRequests[0].Name != "welcome-email" {
+		t.Fatalf("delete name = %q, want welcome-email", backend.deleteRequests[0].Name)
+	}
+}
+
 type fakeBackend struct {
 	mu             sync.Mutex
 	upsertRequests []backend.UpsertPeriodicTaskRequest
+	deleteRequests []backend.DeletePeriodicTaskRequest
 }
 
 func (f *fakeBackend) EnqueueReady(context.Context, backend.EnqueueRequest) (backend.EnqueueResponse, error) {
@@ -133,7 +153,10 @@ func (f *fakeBackend) UpsertPeriodicTask(_ context.Context, request backend.Upse
 	f.upsertRequests = append(f.upsertRequests, request)
 	return nil
 }
-func (f *fakeBackend) DeletePeriodicTask(context.Context, backend.DeletePeriodicTaskRequest) error {
+func (f *fakeBackend) DeletePeriodicTask(_ context.Context, request backend.DeletePeriodicTaskRequest) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.deleteRequests = append(f.deleteRequests, request)
 	return nil
 }
 func (f *fakeBackend) ListDuePeriodicTasks(context.Context, backend.ListDuePeriodicTasksRequest) ([]backend.DuePeriodicTask, error) {
