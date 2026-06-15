@@ -262,6 +262,8 @@ suite.
 │   Phase implementation plans and acceptance checklists.
 ├── docs/reliability/
 │   Operational notes for DLQ, recovery, and failure metadata.
+├── docs/scheduler/
+│   Operational notes for periodic jobs and Redis scheduler coordination.
 └── .github/workflows/
     CI verification.
 ```
