@@ -23,7 +23,7 @@
 - [x] Add signature validation, normalization, and defensive copying.
 - [x] Add chain validation for ordered task signatures.
 - [x] Add group validation for fan-out task signatures.
-- [ ] Add chord validation for group header plus callback signature.
+- [x] Add chord validation for group header plus callback signature.
 - [ ] Verify with `go test ./workflow`.
 - [ ] Commit each narrow behavior.
 
