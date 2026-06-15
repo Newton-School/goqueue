@@ -44,3 +44,13 @@ func TestMarkPeriodicDispatchedScriptVerifiesLeaseToken(t *testing.T) {
 		}
 	}
 }
+
+func TestAdvanceWorkflowChainScriptGuardsDuplicateDispatch(t *testing.T) {
+	script := advanceWorkflowChainScript()
+
+	for _, fragment := range []string{"completed_index", "dispatched_index", "completedIndex >= step", "dispatchedIndex >= nextStep", "HGET"} {
+		if !strings.Contains(script, fragment) {
+			t.Fatalf("chain advance script missing %q in %s", fragment, script)
+		}
+	}
+}

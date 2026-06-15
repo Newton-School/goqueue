@@ -47,3 +47,32 @@ redis.call('DEL', KEYS[3])
 return 1
 `
 }
+
+func advanceWorkflowChainScript() string {
+	return `
+local total = tonumber(redis.call('HGET', KEYS[1], 'total') or '-1')
+if total < 1 then
+  return {0, 0, ''}
+end
+local completedIndex = tonumber(redis.call('HGET', KEYS[1], 'completed_index') or '-1')
+local dispatchedIndex = tonumber(redis.call('HGET', KEYS[1], 'dispatched_index') or '-1')
+local step = tonumber(ARGV[1])
+local nextStep = step + 1
+if completedIndex >= step then
+  return {0, 0, ''}
+end
+redis.call('HSET', KEYS[1], 'completed_index', step, 'completed_task_id', ARGV[2], 'completed_at', ARGV[3])
+if nextStep >= total then
+  return {1, 1, ''}
+end
+if dispatchedIndex >= nextStep then
+  return {1, 0, ''}
+end
+local nextSignature = redis.call('HGET', KEYS[2], tostring(nextStep))
+if not nextSignature then
+  return {1, 0, ''}
+end
+redis.call('HSET', KEYS[1], 'dispatched_index', nextStep)
+return {1, 0, nextSignature}
+`
+}
