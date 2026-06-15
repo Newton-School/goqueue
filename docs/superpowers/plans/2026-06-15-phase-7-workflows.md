@@ -113,6 +113,6 @@
 - [x] Workers record group progress for terminal child states.
 - [x] Chord callbacks dispatch once when all group members succeed.
 - [x] Redis state prevents duplicate chain advancement and duplicate chord callbacks.
-- [ ] Public root package exports workflow APIs.
+- [x] Public root package exports workflow APIs.
 - [ ] `go test ./...` and `go vet ./...` pass.
 - [ ] Phase 7 creates exactly 100 commits from the Phase 6 baseline.
