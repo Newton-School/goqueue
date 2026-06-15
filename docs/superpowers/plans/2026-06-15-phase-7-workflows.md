@@ -35,7 +35,7 @@
 - Modify: `backend/backend.go`
 - Modify: package test fakes as needed.
 
-- [ ] Add workflow signature storage records.
+- [x] Add workflow signature storage records.
 - [ ] Add chain save/advance contracts.
 - [ ] Add group save/progress contracts.
 - [ ] Add validation for workflow IDs, indexes, terminal states, and callbacks.
