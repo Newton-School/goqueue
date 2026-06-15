@@ -76,3 +76,48 @@ redis.call('HSET', KEYS[1], 'dispatched_index', nextStep)
 return {1, 0, nextSignature}
 `
 }
+
+func recordWorkflowGroupCompletedScript() string {
+	return `
+local total = tonumber(redis.call('HGET', KEYS[1], 'total') or '-1')
+if total < 1 then
+  return {0, 0, 0, 0, 0, ''}
+end
+local added = redis.call('SADD', KEYS[2], ARGV[1])
+local completed = tonumber(redis.call('HGET', KEYS[1], 'completed') or '0')
+local failed = tonumber(redis.call('HGET', KEYS[1], 'failed') or '0')
+if added == 0 then
+  local doneDuplicate = 0
+  local succeededDuplicate = 0
+  if completed + failed >= total then
+    doneDuplicate = 1
+  end
+  if doneDuplicate == 1 and failed == 0 then
+    succeededDuplicate = 1
+  end
+  return {total, completed, failed, 1, succeededDuplicate, ''}
+end
+if ARGV[2] == 'SUCCEEDED' then
+  completed = redis.call('HINCRBY', KEYS[1], 'completed', 1)
+else
+  failed = redis.call('HINCRBY', KEYS[1], 'failed', 1)
+end
+local done = 0
+local succeeded = 0
+local callback = ''
+if completed + failed >= total then
+  done = 1
+end
+if done == 1 and failed == 0 then
+  succeeded = 1
+  local dispatched = tonumber(redis.call('HGET', KEYS[1], 'callback_dispatched') or '0')
+  if dispatched == 0 then
+    callback = redis.call('GET', KEYS[3]) or ''
+    if callback ~= '' then
+      redis.call('HSET', KEYS[1], 'callback_dispatched', 1, 'callback_dispatched_at', ARGV[3])
+    end
+  end
+end
+return {total, completed, failed, 0, succeeded, callback}
+`
+}

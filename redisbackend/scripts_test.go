@@ -54,3 +54,13 @@ func TestAdvanceWorkflowChainScriptGuardsDuplicateDispatch(t *testing.T) {
 		}
 	}
 }
+
+func TestRecordWorkflowGroupCompletedScriptGuardsDuplicateCallbacks(t *testing.T) {
+	script := recordWorkflowGroupCompletedScript()
+
+	for _, fragment := range []string{"SADD", "callback_dispatched", "HINCRBY", "ARGV[2] == 'SUCCEEDED'", "redis.call('GET'"} {
+		if !strings.Contains(script, fragment) {
+			t.Fatalf("group progress script missing %q in %s", fragment, script)
+		}
+	}
+}
