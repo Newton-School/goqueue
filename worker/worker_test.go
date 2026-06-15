@@ -1161,6 +1161,36 @@ func TestWorkerRecordsGroupProgressAfterTerminalTask(t *testing.T) {
 	}
 }
 
+func TestWorkerRecordsFailedGroupProgress(t *testing.T) {
+	now := time.Date(2026, time.June, 15, 9, 0, 0, 0, time.UTC)
+	envelope, err := task.NewTaskEnvelope(task.TaskEnvelopeInput{
+		ID:        "11111111-1111-4111-8111-111111111111",
+		Name:      "email.send",
+		Queue:     "billing",
+		Metadata:  map[string]string{"goqueue.workflow.kind": "group", "goqueue.workflow.group_id": "group-1"},
+		CreatedAt: now,
+	})
+	if err != nil {
+		t.Fatalf("NewTaskEnvelope returned error: %v", err)
+	}
+	fake := &fakeBackend{}
+	worker := &Worker{backend: fake, now: func() time.Time { return now }}
+
+	if err := worker.advanceWorkflow(context.Background(), envelope, task.TaskFailed); err != nil {
+		t.Fatalf("advanceWorkflow returned error: %v", err)
+	}
+
+	if len(fake.advanceChainRequests) != 0 {
+		t.Fatalf("advance chain calls = %d, want 0", len(fake.advanceChainRequests))
+	}
+	if len(fake.recordGroupRequests) != 1 {
+		t.Fatalf("record group calls = %d, want 1", len(fake.recordGroupRequests))
+	}
+	if fake.recordGroupRequests[0].State != task.TaskFailed {
+		t.Fatalf("state = %q, want failed", fake.recordGroupRequests[0].State)
+	}
+}
+
 func TestWorkerDispatchesChordCallbackWhenGroupCompletes(t *testing.T) {
 	registry := task.NewTaskRegistry()
 	if err := registry.Register("email.send", task.TaskHandlerFunc(func(_ task.HandlerContext, _ task.TaskPayload) (task.TaskResult, error) {
