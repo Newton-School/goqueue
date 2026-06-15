@@ -44,6 +44,51 @@ func TestPeriodicTaskValidateRequiresSchedule(t *testing.T) {
 	}
 }
 
+func TestPeriodicTaskNormalizeAppliesSafeDefaults(t *testing.T) {
+	definition := validPeriodicTask()
+	definition.Queue = ""
+	definition.Priority = 0
+	definition.RetryPolicy = task.RetryPolicy{}
+
+	normalized, err := definition.Normalize("critical")
+	if err != nil {
+		t.Fatalf("Normalize returned error: %v", err)
+	}
+
+	if normalized.Queue != "critical" {
+		t.Fatalf("Queue = %q, want critical", normalized.Queue)
+	}
+	if normalized.Priority != task.DefaultPriority {
+		t.Fatalf("Priority = %d, want default", normalized.Priority)
+	}
+	if normalized.RetryPolicy != task.DefaultRetryPolicy() {
+		t.Fatalf("RetryPolicy = %+v, want default", normalized.RetryPolicy)
+	}
+}
+
+func TestPeriodicTaskNormalizeCopiesMutableFields(t *testing.T) {
+	definition := validPeriodicTask()
+
+	normalized, err := definition.Normalize("default")
+	if err != nil {
+		t.Fatalf("Normalize returned error: %v", err)
+	}
+
+	definition.Args[0] = "u_999"
+	definition.Kwargs["template"] = "changed"
+	definition.Metadata["source"] = "changed"
+
+	if normalized.Args[0] != "u_123" {
+		t.Fatalf("Args[0] = %v, want copied value", normalized.Args[0])
+	}
+	if normalized.Kwargs["template"] != "welcome" {
+		t.Fatalf("Kwargs template = %v, want copied value", normalized.Kwargs["template"])
+	}
+	if normalized.Metadata["source"] != "scheduler" {
+		t.Fatalf("Metadata source = %v, want copied value", normalized.Metadata["source"])
+	}
+}
+
 func validPeriodicTask() PeriodicTask {
 	return PeriodicTask{
 		Name:        "welcome-email",

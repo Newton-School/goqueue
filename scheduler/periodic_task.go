@@ -29,6 +29,30 @@ type PeriodicTask struct {
 	RetryPolicy task.RetryPolicy
 }
 
+// Normalize applies scheduler defaults and copies mutable fields.
+func (p PeriodicTask) Normalize(defaultQueue task.QueueName) (PeriodicTask, error) {
+	normalized := p
+	if normalized.Queue == "" {
+		normalized.Queue = defaultQueue
+	}
+	if normalized.Priority == 0 {
+		normalized.Priority = task.DefaultPriority
+	}
+	if normalized.RetryPolicy.MaxAttempts == 0 {
+		normalized.RetryPolicy = task.DefaultRetryPolicy()
+	}
+
+	normalized.Args = copyAnySlice(p.Args)
+	normalized.Kwargs = copyAnyMap(p.Kwargs)
+	normalized.Metadata = copyStringMap(p.Metadata)
+
+	if err := normalized.Validate(); err != nil {
+		return PeriodicTask{}, err
+	}
+
+	return normalized, nil
+}
+
 // Validate verifies that the periodic task can be stored and dispatched.
 func (p PeriodicTask) Validate() error {
 	if err := validatePeriodicTaskName(p.Name.String()); err != nil {
@@ -57,6 +81,42 @@ func (p PeriodicTask) Validate() error {
 	}
 
 	return nil
+}
+
+func copyAnySlice(values []any) []any {
+	if values == nil {
+		return nil
+	}
+
+	copied := make([]any, len(values))
+	copy(copied, values)
+	return copied
+}
+
+func copyAnyMap(values map[string]any) map[string]any {
+	if values == nil {
+		return nil
+	}
+
+	copied := make(map[string]any, len(values))
+	for key, value := range values {
+		copied[key] = value
+	}
+
+	return copied
+}
+
+func copyStringMap(values map[string]string) map[string]string {
+	if values == nil {
+		return nil
+	}
+
+	copied := make(map[string]string, len(values))
+	for key, value := range values {
+		copied[key] = value
+	}
+
+	return copied
 }
 
 func validatePeriodicTaskName(name string) error {
