@@ -56,7 +56,7 @@
 - [x] Store group metadata, task membership, and optional chord callback.
 - [x] Record group task completion atomically and return a callback at most once.
 - [x] Verify with `go test ./redisbackend`.
-- [ ] Commit each Redis behavior.
+- [x] Commit each Redis behavior.
 
 ### Task 4: Canvas Producer API
 
