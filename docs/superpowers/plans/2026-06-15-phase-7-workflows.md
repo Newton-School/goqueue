@@ -21,7 +21,7 @@
 - Create tests for each domain type.
 
 - [x] Add signature validation, normalization, and defensive copying.
-- [ ] Add chain validation for ordered task signatures.
+- [x] Add chain validation for ordered task signatures.
 - [ ] Add group validation for fan-out task signatures.
 - [ ] Add chord validation for group header plus callback signature.
 - [ ] Verify with `go test ./workflow`.
