@@ -22,7 +22,7 @@
 - [x] Add interval schedule validation and next-time calculation.
 - [x] Add periodic task definition validation with queue, task name, args, kwargs, metadata, priority, retry policy, and schedule.
 - [x] Keep domain types Redis-independent.
-- [ ] Verify with `go test ./scheduler`.
+- [x] Verify with `go test ./scheduler`.
 - [ ] Commit each narrow behavior.
 
 ### Task 2: Backend Schedule Contracts
