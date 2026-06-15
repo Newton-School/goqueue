@@ -81,7 +81,7 @@
 - Modify worker tests and fakes.
 
 - [x] Advance chain workflows after successful task completion.
-- [ ] Record group child terminal states after task result persistence.
+- [x] Record group child terminal states after task result persistence.
 - [ ] Dispatch chord callbacks once when a group succeeds.
 - [ ] Preserve strict ack ordering by advancing workflows before acknowledgement.
 - [ ] Verify with `go test ./worker`.
