@@ -2,6 +2,7 @@ package redisbackend
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"testing"
 	"time"
@@ -53,5 +54,26 @@ func TestMarkPeriodicTaskDispatchedRejectsNilClient(t *testing.T) {
 	})
 	if !errors.Is(err, ErrInvalidRedisOptions) {
 		t.Fatalf("MarkPeriodicTaskDispatched error = %v, want ErrInvalidRedisOptions", err)
+	}
+}
+
+func TestNewPeriodicLockTokenReturnsHexToken(t *testing.T) {
+	first, err := newPeriodicLockToken()
+	if err != nil {
+		t.Fatalf("newPeriodicLockToken returned error: %v", err)
+	}
+	second, err := newPeriodicLockToken()
+	if err != nil {
+		t.Fatalf("newPeriodicLockToken returned error: %v", err)
+	}
+
+	if len(first) != 32 {
+		t.Fatalf("token length = %d, want 32", len(first))
+	}
+	if _, err := hex.DecodeString(first); err != nil {
+		t.Fatalf("token should be hex: %v", err)
+	}
+	if first == second {
+		t.Fatal("lock tokens should be unique")
 	}
 }
