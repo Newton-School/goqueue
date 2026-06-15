@@ -8,4 +8,7 @@ var (
 
 	// ErrInvalidPeriodicTask is returned when a periodic task definition is unsafe.
 	ErrInvalidPeriodicTask = errors.New("goqueue scheduler: invalid periodic task")
+
+	// ErrInvalidSchedulerOption is returned when scheduler configuration is unsafe.
+	ErrInvalidSchedulerOption = errors.New("goqueue scheduler: invalid option")
 )
