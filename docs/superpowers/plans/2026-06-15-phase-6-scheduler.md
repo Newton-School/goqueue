@@ -95,7 +95,7 @@
 - [x] Scheduler pods can register definitions and dispatch due task instances.
 - [x] Multiple scheduler pods do not enqueue the same due occurrence when Redis leasing succeeds.
 - [x] Scheduler dispatch uses the existing producer path so task state/result behavior stays consistent.
-- [ ] Redis-backed periodic definitions survive process restarts.
+- [x] Redis-backed periodic definitions survive process restarts.
 - [ ] Public root package exports the scheduler API.
 - [ ] `go test ./...` and `go vet ./...` pass.
 - [ ] Phase 6 creates at least 100 commits from the pre-phase baseline.
