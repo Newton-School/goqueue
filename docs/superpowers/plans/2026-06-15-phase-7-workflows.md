@@ -82,7 +82,7 @@
 
 - [x] Advance chain workflows after successful task completion.
 - [x] Record group child terminal states after task result persistence.
-- [ ] Dispatch chord callbacks once when a group succeeds.
+- [x] Dispatch chord callbacks once when a group succeeds.
 - [ ] Preserve strict ack ordering by advancing workflows before acknowledgement.
 - [ ] Verify with `go test ./worker`.
 - [ ] Commit each worker behavior.
