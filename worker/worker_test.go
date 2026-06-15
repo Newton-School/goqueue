@@ -1079,6 +1079,46 @@ func TestWorkerDoesNotAdvanceChainAfterFailedTask(t *testing.T) {
 	}
 }
 
+func TestWorkerSchedulesChainSuccessorWithETA(t *testing.T) {
+	now := time.Date(2026, time.June, 15, 9, 0, 0, 0, time.UTC)
+	envelope, err := task.NewTaskEnvelope(task.TaskEnvelopeInput{
+		ID:        "11111111-1111-4111-8111-111111111111",
+		Name:      "email.send",
+		Queue:     "billing",
+		Metadata:  map[string]string{"goqueue.workflow.kind": "chain", "goqueue.workflow.chain_id": "chain-1", "goqueue.workflow.chain_step": "0"},
+		CreatedAt: now,
+	})
+	if err != nil {
+		t.Fatalf("NewTaskEnvelope returned error: %v", err)
+	}
+	next := backend.WorkflowSignatureRecord{
+		Name:        "email.audit",
+		Queue:       "billing",
+		Timing:      task.TaskTiming{ETA: now.Add(time.Minute)},
+		Priority:    task.DefaultPriority,
+		RetryPolicy: task.DefaultRetryPolicy(),
+	}
+	fake := &fakeBackend{advanceChainResponse: backend.AdvanceWorkflowChainResponse{Advanced: true, Next: &next}}
+	worker := &Worker{backend: fake, codec: task.JSONPayloadCodec{}, now: func() time.Time { return now }}
+
+	if err := worker.advanceWorkflow(context.Background(), envelope, task.TaskSucceeded); err != nil {
+		t.Fatalf("advanceWorkflow returned error: %v", err)
+	}
+
+	if len(fake.enqueueReadyRequests) != 0 {
+		t.Fatalf("enqueue ready calls = %d, want 0", len(fake.enqueueReadyRequests))
+	}
+	if len(fake.enqueueScheduledRequests) != 1 {
+		t.Fatalf("enqueue scheduled calls = %d, want 1", len(fake.enqueueScheduledRequests))
+	}
+	if len(fake.setStateRequests) != 1 {
+		t.Fatalf("state calls = %d, want 1", len(fake.setStateRequests))
+	}
+	if fake.setStateRequests[0].State != task.TaskScheduled {
+		t.Fatalf("state = %q, want scheduled", fake.setStateRequests[0].State)
+	}
+}
+
 func TestWorkerRecordsGroupProgressAfterTerminalTask(t *testing.T) {
 	registry := task.NewTaskRegistry()
 	if err := registry.Register("email.send", task.TaskHandlerFunc(func(_ task.HandlerContext, _ task.TaskPayload) (task.TaskResult, error) {
