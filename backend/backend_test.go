@@ -53,6 +53,18 @@ func (noopBackend) ListDuePeriodicTasks(context.Context, ListDuePeriodicTasksReq
 func (noopBackend) MarkPeriodicTaskDispatched(context.Context, MarkPeriodicTaskDispatchedRequest) error {
 	return nil
 }
+func (noopBackend) SaveWorkflowChain(context.Context, WorkflowChainRecord) error {
+	return nil
+}
+func (noopBackend) AdvanceWorkflowChain(context.Context, AdvanceWorkflowChainRequest) (AdvanceWorkflowChainResponse, error) {
+	return AdvanceWorkflowChainResponse{}, nil
+}
+func (noopBackend) SaveWorkflowGroup(context.Context, WorkflowGroupRecord) error {
+	return nil
+}
+func (noopBackend) RecordWorkflowTaskCompleted(context.Context, RecordWorkflowTaskCompletedRequest) (WorkflowGroupProgress, error) {
+	return WorkflowGroupProgress{}, nil
+}
 func (noopBackend) SetTaskState(context.Context, TaskStateRecord) error {
 	return nil
 }

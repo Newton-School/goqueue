@@ -21,6 +21,10 @@ type QueueBackend interface {
 	DeletePeriodicTask(context.Context, DeletePeriodicTaskRequest) error
 	ListDuePeriodicTasks(context.Context, ListDuePeriodicTasksRequest) ([]DuePeriodicTask, error)
 	MarkPeriodicTaskDispatched(context.Context, MarkPeriodicTaskDispatchedRequest) error
+	SaveWorkflowChain(context.Context, WorkflowChainRecord) error
+	AdvanceWorkflowChain(context.Context, AdvanceWorkflowChainRequest) (AdvanceWorkflowChainResponse, error)
+	SaveWorkflowGroup(context.Context, WorkflowGroupRecord) error
+	RecordWorkflowTaskCompleted(context.Context, RecordWorkflowTaskCompletedRequest) (WorkflowGroupProgress, error)
 	SetTaskState(context.Context, TaskStateRecord) error
 	GetTaskState(context.Context, task.TaskID) (TaskStateRecord, error)
 	SaveTaskResult(context.Context, TaskResultRecord) error
