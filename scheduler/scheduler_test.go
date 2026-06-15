@@ -207,6 +207,33 @@ func TestSchedulerPollOnceReturnsZeroWhenNoTasksAreDue(t *testing.T) {
 	}
 }
 
+func TestSchedulerPollOnceRejectsInvalidDueRecordBeforeDispatch(t *testing.T) {
+	backend := &fakeBackend{
+		dueTasks: []backend.DuePeriodicTask{{
+			Record: backend.PeriodicTaskRecord{
+				Name: "broken",
+			},
+			LockToken:   "lock-token",
+			LockedUntil: time.Date(2026, time.June, 15, 10, 1, 0, 0, time.UTC),
+		}},
+	}
+	scheduler, err := NewScheduler(backend, WithSchedulerIdentity("scheduler-1"))
+	if err != nil {
+		t.Fatalf("NewScheduler returned error: %v", err)
+	}
+
+	dispatched, err := scheduler.PollOnce(context.Background())
+	if err == nil {
+		t.Fatal("PollOnce expected error")
+	}
+	if dispatched != 0 {
+		t.Fatalf("dispatched = %d, want 0", dispatched)
+	}
+	if len(backend.enqueueReadyRequests) != 0 {
+		t.Fatalf("enqueue calls = %d, want 0", len(backend.enqueueReadyRequests))
+	}
+}
+
 func TestSchedulerPollOnceDoesNotMarkWhenDispatchFails(t *testing.T) {
 	now := time.Date(2026, time.June, 15, 10, 0, 0, 0, time.UTC)
 	record, err := validPeriodicTask().toBackendRecord("default", now.Add(-10*time.Minute))
