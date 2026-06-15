@@ -1191,6 +1191,33 @@ func TestWorkerRecordsFailedGroupProgress(t *testing.T) {
 	}
 }
 
+func TestWorkerRecordsChordProgressFromChordID(t *testing.T) {
+	now := time.Date(2026, time.June, 15, 9, 0, 0, 0, time.UTC)
+	envelope, err := task.NewTaskEnvelope(task.TaskEnvelopeInput{
+		ID:        "11111111-1111-4111-8111-111111111111",
+		Name:      "email.send",
+		Queue:     "billing",
+		Metadata:  map[string]string{"goqueue.workflow.kind": "chord", "goqueue.workflow.chord_id": "chord-1"},
+		CreatedAt: now,
+	})
+	if err != nil {
+		t.Fatalf("NewTaskEnvelope returned error: %v", err)
+	}
+	fake := &fakeBackend{}
+	worker := &Worker{backend: fake, now: func() time.Time { return now }}
+
+	if err := worker.advanceWorkflow(context.Background(), envelope, task.TaskSucceeded); err != nil {
+		t.Fatalf("advanceWorkflow returned error: %v", err)
+	}
+
+	if len(fake.recordGroupRequests) != 1 {
+		t.Fatalf("record group calls = %d, want 1", len(fake.recordGroupRequests))
+	}
+	if fake.recordGroupRequests[0].GroupID != "chord-1" {
+		t.Fatalf("group id = %q, want chord-1", fake.recordGroupRequests[0].GroupID)
+	}
+}
+
 func TestWorkerDispatchesChordCallbackWhenGroupCompletes(t *testing.T) {
 	registry := task.NewTaskRegistry()
 	if err := registry.Register("email.send", task.TaskHandlerFunc(func(_ task.HandlerContext, _ task.TaskPayload) (task.TaskResult, error) {
