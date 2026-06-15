@@ -1,6 +1,7 @@
 package workflow
 
 import (
+	"context"
 	"time"
 
 	"github.com/Newton-School/goqueue/backend"
@@ -50,6 +51,31 @@ func NewCanvas(queueBackend backend.QueueBackend, opts ...CanvasOption) (*Canvas
 		codec:        config.codec,
 		now:          config.now,
 	}, nil
+}
+
+// ApplySignature dispatches one signature through the producer path.
+func (c *Canvas) ApplySignature(ctx context.Context, signature Signature) (*producer.AsyncResult, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	normalized, err := signature.Normalize(c.defaultQueue)
+	if err != nil {
+		return nil, err
+	}
+
+	return c.producer.ApplyAsync(
+		ctx,
+		normalized.Name,
+		copyAnySlice(normalized.Args),
+		copyAnyMap(normalized.Kwargs),
+		producer.WithApplyQueue(normalized.Queue),
+		producer.WithApplyMetadata(copyStringMap(normalized.Metadata)),
+		producer.WithApplyPriority(normalized.Priority),
+		producer.WithApplyRetryPolicy(normalized.RetryPolicy),
+		producer.WithApplyETA(normalized.Timing.ETA),
+		producer.WithApplyExpiresAt(normalized.Timing.ExpiresAt),
+		producer.WithApplyCreatedAt(c.now()),
+	)
 }
 
 func newWorkflowID() (task.TaskID, error) {

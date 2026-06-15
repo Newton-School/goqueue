@@ -49,12 +49,46 @@ func TestNewWorkflowIDGeneratesUUIDLikeID(t *testing.T) {
 	}
 }
 
-type fakeBackend struct {
-	mu sync.Mutex
+func TestCanvasApplySignatureDispatchesTask(t *testing.T) {
+	backend := &fakeBackend{}
+	canvas, err := NewCanvas(backend, WithCanvasDefaultQueue("critical"))
+	if err != nil {
+		t.Fatalf("NewCanvas returned error: %v", err)
+	}
+	signature := validSignature()
+	signature.Queue = ""
+
+	result, err := canvas.ApplySignature(context.Background(), signature)
+	if err != nil {
+		t.Fatalf("ApplySignature returned error: %v", err)
+	}
+
+	if result == nil || result.ID() == "" {
+		t.Fatal("ApplySignature should return async result with task id")
+	}
+	if len(backend.enqueueReadyRequests) != 1 {
+		t.Fatalf("enqueue ready calls = %d, want 1", len(backend.enqueueReadyRequests))
+	}
+	message := backend.enqueueReadyRequests[0].Message
+	if message.Name != "email.send" {
+		t.Fatalf("message name = %q, want email.send", message.Name)
+	}
+	if message.Queue != "critical" {
+		t.Fatalf("message queue = %q, want critical", message.Queue)
+	}
 }
 
-func (f *fakeBackend) EnqueueReady(context.Context, backend.EnqueueRequest) (backend.EnqueueResponse, error) {
-	return backend.EnqueueResponse{}, nil
+type fakeBackend struct {
+	mu                   sync.Mutex
+	enqueueReadyRequests []backend.EnqueueRequest
+	setStateRequests     []backend.TaskStateRecord
+}
+
+func (f *fakeBackend) EnqueueReady(_ context.Context, request backend.EnqueueRequest) (backend.EnqueueResponse, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.enqueueReadyRequests = append(f.enqueueReadyRequests, request)
+	return backend.EnqueueResponse{TaskID: task.TaskID(request.Message.ID), StreamID: "1-0"}, nil
 }
 func (f *fakeBackend) EnqueueScheduled(context.Context, backend.EnqueueRequest) (backend.EnqueueResponse, error) {
 	return backend.EnqueueResponse{}, nil
@@ -102,7 +136,10 @@ func (f *fakeBackend) SaveWorkflowGroup(context.Context, backend.WorkflowGroupRe
 func (f *fakeBackend) RecordWorkflowTaskCompleted(context.Context, backend.RecordWorkflowTaskCompletedRequest) (backend.WorkflowGroupProgress, error) {
 	return backend.WorkflowGroupProgress{}, nil
 }
-func (f *fakeBackend) SetTaskState(context.Context, backend.TaskStateRecord) error {
+func (f *fakeBackend) SetTaskState(_ context.Context, record backend.TaskStateRecord) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.setStateRequests = append(f.setStateRequests, record)
 	return nil
 }
 func (f *fakeBackend) GetTaskState(context.Context, task.TaskID) (backend.TaskStateRecord, error) {
