@@ -92,7 +92,7 @@
 ### Acceptance Criteria
 
 - [x] SDK users can define interval-based periodic tasks without Redis-specific types.
-- [ ] Scheduler pods can register definitions and dispatch due task instances.
+- [x] Scheduler pods can register definitions and dispatch due task instances.
 - [ ] Multiple scheduler pods do not enqueue the same due occurrence when Redis leasing succeeds.
 - [ ] Scheduler dispatch uses the existing producer path so task state/result behavior stays consistent.
 - [ ] Redis-backed periodic definitions survive process restarts.
