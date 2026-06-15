@@ -108,7 +108,7 @@
 ### Acceptance Criteria
 
 - [x] SDK users can create reusable signatures without Redis-specific types.
-- [ ] SDK users can dispatch chains, groups, and chords.
+- [x] SDK users can dispatch chains, groups, and chords.
 - [ ] Workers advance chains only after persisted successful completion.
 - [ ] Workers record group progress for terminal child states.
 - [ ] Chord callbacks dispatch once when all group members succeed.
