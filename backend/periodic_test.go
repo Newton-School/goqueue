@@ -233,6 +233,22 @@ func TestMarkPeriodicTaskDispatchedRequestValidateRequiresNextDueAt(t *testing.T
 	}
 }
 
+func TestDeletePeriodicTaskRequestValidateAcceptsName(t *testing.T) {
+	request := DeletePeriodicTaskRequest{Name: "welcome-email"}
+
+	if err := request.Validate(); err != nil {
+		t.Fatalf("Validate returned error: %v", err)
+	}
+}
+
+func TestDeletePeriodicTaskRequestValidateRequiresName(t *testing.T) {
+	request := DeletePeriodicTaskRequest{}
+
+	if err := request.Validate(); !errors.Is(err, ErrInvalidBackendRequest) {
+		t.Fatalf("Validate error = %v, want ErrInvalidBackendRequest", err)
+	}
+}
+
 func validMarkPeriodicTaskDispatchedRequest() MarkPeriodicTaskDispatchedRequest {
 	return MarkPeriodicTaskDispatchedRequest{
 		Name:             "welcome-email",

@@ -58,6 +58,11 @@ type MarkPeriodicTaskDispatchedRequest struct {
 	NextDueAt        time.Time
 }
 
+// DeletePeriodicTaskRequest removes a periodic definition and its schedule index.
+type DeletePeriodicTaskRequest struct {
+	Name string
+}
+
 // Validate verifies that the upsert request contains a complete record.
 func (r UpsertPeriodicTaskRequest) Validate() error {
 	return r.Record.Validate()
@@ -115,6 +120,18 @@ func (r MarkPeriodicTaskDispatchedRequest) Validate() error {
 	}
 	if r.NextDueAt.IsZero() {
 		return fmt.Errorf("%w: next due time is required", ErrInvalidBackendRequest)
+	}
+
+	return nil
+}
+
+// Validate verifies that the periodic definition name is safe to delete.
+func (r DeletePeriodicTaskRequest) Validate() error {
+	if r.Name == "" {
+		return fmt.Errorf("%w: periodic task name is required", ErrInvalidBackendRequest)
+	}
+	if err := task.ValidateTaskName(r.Name); err != nil {
+		return fmt.Errorf("%w: periodic task name is invalid: %v", ErrInvalidBackendRequest, err)
 	}
 
 	return nil
