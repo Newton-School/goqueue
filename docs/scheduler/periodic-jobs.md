@@ -65,6 +65,13 @@ claiming a definition, the lease expires and a later poll can claim it again.
 The scheduler identity should be stable for the pod process and safe for logs.
 If one is not configured, goqueue generates a random `scheduler-<hex>` identity.
 
+## Handler Idempotency
+
+Periodic task handlers should be idempotent. Redis leases prevent concurrent
+dispatch under normal operation, but a process can still crash after enqueueing a
+task and before marking the schedule advanced. In that case, the same due
+occurrence can be retried after the lease expires.
+
 ## Dispatch Metadata
 
 Dispatched task instances include trace metadata:
