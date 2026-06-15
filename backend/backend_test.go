@@ -41,6 +41,18 @@ func (noopBackend) EnqueueDeadLetter(context.Context, DeadLetterRequest) (DeadLe
 func (noopBackend) ReadDeadLetters(context.Context, ReadDeadLettersRequest) ([]DeadLetterRecord, error) {
 	return nil, nil
 }
+func (noopBackend) UpsertPeriodicTask(context.Context, UpsertPeriodicTaskRequest) error {
+	return nil
+}
+func (noopBackend) DeletePeriodicTask(context.Context, DeletePeriodicTaskRequest) error {
+	return nil
+}
+func (noopBackend) ListDuePeriodicTasks(context.Context, ListDuePeriodicTasksRequest) ([]DuePeriodicTask, error) {
+	return nil, nil
+}
+func (noopBackend) MarkPeriodicTaskDispatched(context.Context, MarkPeriodicTaskDispatchedRequest) error {
+	return nil
+}
 func (noopBackend) SetTaskState(context.Context, TaskStateRecord) error {
 	return nil
 }
