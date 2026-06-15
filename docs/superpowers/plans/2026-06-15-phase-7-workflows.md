@@ -40,7 +40,7 @@
 - [x] Add group save/progress contracts.
 - [x] Add validation for workflow IDs, indexes, terminal states, and callbacks.
 - [x] Verify with `go test ./backend`.
-- [ ] Commit each contract slice.
+- [x] Commit each contract slice.
 
 ### Task 3: Redis Workflow Persistence
 
