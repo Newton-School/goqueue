@@ -222,6 +222,46 @@ func TestSchedulerPollOnceDoesNotMarkWhenDispatchFails(t *testing.T) {
 	}
 }
 
+func TestSchedulerPollOnceReturnsErrorWhenMarkFails(t *testing.T) {
+	now := time.Date(2026, time.June, 15, 10, 0, 0, 0, time.UTC)
+	record, err := validPeriodicTask().toBackendRecord("default", now.Add(-10*time.Minute))
+	if err != nil {
+		t.Fatalf("toBackendRecord returned error: %v", err)
+	}
+	record.NextDueAt = now
+
+	backend := &fakeBackend{
+		markErr: errSchedulerTest,
+		dueTasks: []backend.DuePeriodicTask{{
+			Record:      record,
+			LockToken:   "lock-token",
+			LockedUntil: now.Add(time.Minute),
+		}},
+	}
+	scheduler, err := NewScheduler(
+		backend,
+		WithSchedulerIdentity("scheduler-1"),
+		WithSchedulerNow(func() time.Time { return now }),
+	)
+	if err != nil {
+		t.Fatalf("NewScheduler returned error: %v", err)
+	}
+
+	dispatched, err := scheduler.PollOnce(context.Background())
+	if !errors.Is(err, errSchedulerTest) {
+		t.Fatalf("PollOnce error = %v, want errSchedulerTest", err)
+	}
+	if dispatched != 0 {
+		t.Fatalf("dispatched = %d, want 0", dispatched)
+	}
+	if len(backend.enqueueReadyRequests) != 1 {
+		t.Fatalf("enqueue ready calls = %d, want 1", len(backend.enqueueReadyRequests))
+	}
+	if len(backend.markRequests) != 1 {
+		t.Fatalf("mark calls = %d, want 1", len(backend.markRequests))
+	}
+}
+
 type fakeBackend struct {
 	mu                   sync.Mutex
 	upsertRequests       []backend.UpsertPeriodicTaskRequest
@@ -231,6 +271,7 @@ type fakeBackend struct {
 	enqueueReadyRequests []backend.EnqueueRequest
 	dueTasks             []backend.DuePeriodicTask
 	enqueueReadyErr      error
+	markErr              error
 }
 
 func (f *fakeBackend) EnqueueReady(_ context.Context, request backend.EnqueueRequest) (backend.EnqueueResponse, error) {
@@ -286,7 +327,7 @@ func (f *fakeBackend) MarkPeriodicTaskDispatched(_ context.Context, request back
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.markRequests = append(f.markRequests, request)
-	return nil
+	return f.markErr
 }
 func (f *fakeBackend) SetTaskState(context.Context, backend.TaskStateRecord) error {
 	return nil
