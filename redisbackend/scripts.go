@@ -34,3 +34,16 @@ end
 return moved
 `
 }
+
+func markPeriodicDispatchedScript() string {
+	return `
+local token = redis.call('GET', KEYS[3])
+if token ~= ARGV[1] then
+  return 0
+end
+redis.call('HSET', KEYS[1], ARGV[2], ARGV[3])
+redis.call('ZADD', KEYS[2], ARGV[4], ARGV[2])
+redis.call('DEL', KEYS[3])
+return 1
+`
+}
