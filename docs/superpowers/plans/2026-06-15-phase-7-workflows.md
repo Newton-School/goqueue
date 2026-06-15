@@ -20,7 +20,7 @@
 - Create: `workflow/chord.go`
 - Create tests for each domain type.
 
-- [ ] Add signature validation, normalization, and defensive copying.
+- [x] Add signature validation, normalization, and defensive copying.
 - [ ] Add chain validation for ordered task signatures.
 - [ ] Add group validation for fan-out task signatures.
 - [ ] Add chord validation for group header plus callback signature.
