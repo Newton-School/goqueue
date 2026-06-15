@@ -78,10 +78,55 @@ func TestCanvasApplySignatureDispatchesTask(t *testing.T) {
 	}
 }
 
+func TestCanvasApplyChainStoresChainBeforeDispatch(t *testing.T) {
+	backend := &fakeBackend{}
+	canvas, err := NewCanvas(backend, WithCanvasDefaultQueue("critical"))
+	if err != nil {
+		t.Fatalf("NewCanvas returned error: %v", err)
+	}
+	first := validSignature()
+	first.Queue = ""
+	second := validSignature()
+	second.Name = "email.audit"
+	second.Queue = ""
+
+	result, err := canvas.ApplyChain(context.Background(), Chain{Signatures: []Signature{first, second}})
+	if err != nil {
+		t.Fatalf("ApplyChain returned error: %v", err)
+	}
+
+	if result.WorkflowID == "" || result.FirstTask == "" {
+		t.Fatalf("result = %+v, want workflow and first task ids", result)
+	}
+	if len(backend.savedChains) != 1 {
+		t.Fatalf("saved chains = %d, want 1", len(backend.savedChains))
+	}
+	if backend.savedChains[0].ID != result.WorkflowID.String() {
+		t.Fatalf("chain id = %q, want %q", backend.savedChains[0].ID, result.WorkflowID)
+	}
+	if len(backend.enqueueReadyRequests) != 1 {
+		t.Fatalf("enqueue calls = %d, want 1", len(backend.enqueueReadyRequests))
+	}
+	message := backend.enqueueReadyRequests[0].Message
+	if message.ID != result.FirstTask.String() {
+		t.Fatalf("message id = %q, want %q", message.ID, result.FirstTask)
+	}
+	if message.Metadata[MetadataKindKey] != WorkflowKindChain {
+		t.Fatalf("workflow kind = %q, want chain", message.Metadata[MetadataKindKey])
+	}
+	if message.Metadata[MetadataChainIDKey] != result.WorkflowID.String() {
+		t.Fatalf("chain id metadata = %q, want workflow id", message.Metadata[MetadataChainIDKey])
+	}
+	if message.Metadata[MetadataChainStepKey] != "0" {
+		t.Fatalf("chain step metadata = %q, want 0", message.Metadata[MetadataChainStepKey])
+	}
+}
+
 type fakeBackend struct {
 	mu                   sync.Mutex
 	enqueueReadyRequests []backend.EnqueueRequest
 	setStateRequests     []backend.TaskStateRecord
+	savedChains          []backend.WorkflowChainRecord
 }
 
 func (f *fakeBackend) EnqueueReady(_ context.Context, request backend.EnqueueRequest) (backend.EnqueueResponse, error) {
@@ -124,7 +169,10 @@ func (f *fakeBackend) ListDuePeriodicTasks(context.Context, backend.ListDuePerio
 func (f *fakeBackend) MarkPeriodicTaskDispatched(context.Context, backend.MarkPeriodicTaskDispatchedRequest) error {
 	return nil
 }
-func (f *fakeBackend) SaveWorkflowChain(context.Context, backend.WorkflowChainRecord) error {
+func (f *fakeBackend) SaveWorkflowChain(_ context.Context, record backend.WorkflowChainRecord) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.savedChains = append(f.savedChains, record)
 	return nil
 }
 func (f *fakeBackend) AdvanceWorkflowChain(context.Context, backend.AdvanceWorkflowChainRequest) (backend.AdvanceWorkflowChainResponse, error) {

@@ -2,6 +2,7 @@ package workflow
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/Newton-School/goqueue/backend"
@@ -76,6 +77,68 @@ func (c *Canvas) ApplySignature(ctx context.Context, signature Signature) (*prod
 		producer.WithApplyExpiresAt(normalized.Timing.ExpiresAt),
 		producer.WithApplyCreatedAt(c.now()),
 	)
+}
+
+// ApplyChain stores a chain workflow and dispatches the first signature.
+func (c *Canvas) ApplyChain(ctx context.Context, chain Chain) (ChainResult, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	workflowID, err := newWorkflowID()
+	if err != nil {
+		return ChainResult{}, err
+	}
+	firstTaskID, err := task.NewTaskID()
+	if err != nil {
+		return ChainResult{}, err
+	}
+
+	record, err := chain.toBackendRecord(workflowID.String(), c.defaultQueue, c.now())
+	if err != nil {
+		return ChainResult{}, err
+	}
+	if err := c.backend.SaveWorkflowChain(ctx, record); err != nil {
+		return ChainResult{}, err
+	}
+
+	first := record.Signatures[0]
+	_, err = c.applyRecord(ctx, first, firstTaskID, map[string]string{
+		MetadataKindKey:      WorkflowKindChain,
+		MetadataChainIDKey:   workflowID.String(),
+		MetadataChainStepKey: workflowIndexMetadata(0),
+	})
+	if err != nil {
+		return ChainResult{}, err
+	}
+
+	return ChainResult{WorkflowID: workflowID, FirstTask: firstTaskID}, nil
+}
+
+func (c *Canvas) applyRecord(
+	ctx context.Context,
+	record backend.WorkflowSignatureRecord,
+	taskID task.TaskID,
+	reserved map[string]string,
+) (*producer.AsyncResult, error) {
+	metadata := MergeMetadata(record.Metadata, reserved)
+	return c.producer.ApplyAsync(
+		ctx,
+		record.Name,
+		copyAnySlice(record.Args),
+		copyAnyMap(record.Kwargs),
+		producer.WithApplyTaskID(taskID),
+		producer.WithApplyQueue(record.Queue),
+		producer.WithApplyMetadata(metadata),
+		producer.WithApplyPriority(record.Priority),
+		producer.WithApplyRetryPolicy(record.RetryPolicy),
+		producer.WithApplyETA(record.Timing.ETA),
+		producer.WithApplyExpiresAt(record.Timing.ExpiresAt),
+		producer.WithApplyCreatedAt(c.now()),
+	)
+}
+
+func workflowIndexMetadata(index int) string {
+	return strconv.Itoa(index)
 }
 
 func newWorkflowID() (task.TaskID, error) {
