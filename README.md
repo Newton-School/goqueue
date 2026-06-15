@@ -5,11 +5,11 @@ Celery-style developer experience for Go: named tasks, queue routing, immediate
 execution, scheduled execution, retries, workers, periodic jobs, and workflow
 primitives such as groups and chains.
 
-This repository has completed Phase 6 scheduler and periodic jobs. The public surface
+This repository has completed Phase 7 canvas and workflow primitives. The public surface
 now includes task identity primitives, producer APIs, Redis backend storage, and
 a production-grade worker runtime with acknowledgements, retries, dead-letter
 queues, pending recovery, task state/result persistence, and Redis-coordinated
-periodic task dispatch.
+periodic task dispatch, chains, groups, and chords.
 
 ## Installation
 
@@ -256,14 +256,18 @@ suite.
 │   Worker runtime for consuming and executing task messages.
 ├── scheduler/
 │   Periodic task definitions, scheduler runtime, and dispatch coordination.
+├── workflow/
+│   Canvas primitives: signatures, chains, groups, chords, and dispatch APIs.
 ├── redisbackend/
-│   Redis Streams, sorted sets, Lua scripts, scheduler leases, task state, and result storage.
+│   Redis Streams, sorted sets, Lua scripts, scheduler leases, workflow state, task state, and result storage.
 ├── docs/superpowers/plans/
 │   Phase implementation plans and acceptance checklists.
 ├── docs/reliability/
 │   Operational notes for DLQ, recovery, and failure metadata.
 ├── docs/scheduler/
 │   Operational notes for periodic jobs and Redis scheduler coordination.
+├── docs/workflows/
+│   Usage and Redis state notes for canvas workflows.
 └── .github/workflows/
     CI verification.
 ```
