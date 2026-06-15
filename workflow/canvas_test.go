@@ -76,6 +76,9 @@ func TestCanvasApplySignatureDispatchesTask(t *testing.T) {
 	if message.Queue != "critical" {
 		t.Fatalf("message queue = %q, want critical", message.Queue)
 	}
+	if message.Metadata["source"] != "workflow" {
+		t.Fatalf("message metadata source = %q, want workflow", message.Metadata["source"])
+	}
 }
 
 func TestCanvasApplyChainStoresChainBeforeDispatch(t *testing.T) {
