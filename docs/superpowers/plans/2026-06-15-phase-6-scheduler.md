@@ -20,7 +20,7 @@
 - Create: `scheduler/periodic_task_test.go`
 
 - [x] Add interval schedule validation and next-time calculation.
-- [ ] Add periodic task definition validation with queue, task name, args, kwargs, metadata, priority, retry policy, and schedule.
+- [x] Add periodic task definition validation with queue, task name, args, kwargs, metadata, priority, retry policy, and schedule.
 - [ ] Keep domain types Redis-independent.
 - [ ] Verify with `go test ./scheduler`.
 - [ ] Commit each narrow behavior.
