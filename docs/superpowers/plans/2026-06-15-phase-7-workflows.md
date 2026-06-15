@@ -110,7 +110,7 @@
 - [x] SDK users can create reusable signatures without Redis-specific types.
 - [x] SDK users can dispatch chains, groups, and chords.
 - [x] Workers advance chains only after persisted successful completion.
-- [ ] Workers record group progress for terminal child states.
+- [x] Workers record group progress for terminal child states.
 - [ ] Chord callbacks dispatch once when all group members succeed.
 - [ ] Redis state prevents duplicate chain advancement and duplicate chord callbacks.
 - [ ] Public root package exports workflow APIs.
