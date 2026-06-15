@@ -53,7 +53,7 @@
 - [x] Index next due times in a Redis sorted set.
 - [x] Lease due definitions atomically so concurrent scheduler pods do not dispatch the same due occurrence.
 - [x] Mark successful dispatches by advancing the next due time.
-- [ ] Verify with `go test ./redisbackend`.
+- [x] Verify with `go test ./redisbackend`.
 - [ ] Commit each Redis behavior.
 
 ### Task 4: Scheduler Runtime
