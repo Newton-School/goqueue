@@ -22,6 +22,9 @@ var (
 	// ErrPeriodicTaskLeaseLost is returned when a scheduler no longer owns a periodic lease.
 	ErrPeriodicTaskLeaseLost = errors.New("goqueue backend: periodic task lease lost")
 
+	// ErrPeriodicTaskNotFound is returned when a periodic task definition is missing.
+	ErrPeriodicTaskNotFound = errors.New("goqueue backend: periodic task not found")
+
 	// ErrInvalidBackendRequest is returned when a backend request is incomplete.
 	ErrInvalidBackendRequest = errors.New("goqueue backend: invalid request")
 
