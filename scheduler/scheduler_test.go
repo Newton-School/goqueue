@@ -95,6 +95,26 @@ func TestSchedulerAccessorsExposeRuntimeConfiguration(t *testing.T) {
 	}
 }
 
+func TestNilSchedulerAccessorsReturnZeroValues(t *testing.T) {
+	var scheduler *Scheduler
+
+	if scheduler.Identity() != "" {
+		t.Fatalf("Identity = %q, want empty", scheduler.Identity())
+	}
+	if scheduler.DefaultQueue() != "" {
+		t.Fatalf("DefaultQueue = %q, want empty", scheduler.DefaultQueue())
+	}
+	if scheduler.BatchSize() != 0 {
+		t.Fatalf("BatchSize = %d, want 0", scheduler.BatchSize())
+	}
+	if scheduler.LockTTL() != 0 {
+		t.Fatalf("LockTTL = %v, want 0", scheduler.LockTTL())
+	}
+	if scheduler.PollInterval() != 0 {
+		t.Fatalf("PollInterval = %v, want 0", scheduler.PollInterval())
+	}
+}
+
 func TestSchedulerRegisterPeriodicTaskUpsertsBackendRecord(t *testing.T) {
 	now := time.Date(2026, time.June, 15, 10, 0, 0, 0, time.UTC)
 	backend := &fakeBackend{}
