@@ -65,6 +65,13 @@ func TestNewSchedulerGeneratesIdentity(t *testing.T) {
 	}
 }
 
+func TestNewSchedulerReturnsInvalidOptionError(t *testing.T) {
+	_, err := NewScheduler(&fakeBackend{}, WithSchedulerBatchSize(0))
+	if !errors.Is(err, ErrInvalidSchedulerOption) {
+		t.Fatalf("NewScheduler error = %v, want ErrInvalidSchedulerOption", err)
+	}
+}
+
 func TestSchedulerAccessorsExposeRuntimeConfiguration(t *testing.T) {
 	scheduler, err := NewScheduler(
 		&fakeBackend{},
