@@ -86,6 +86,60 @@ func TestAdvanceWorkflowChainRequestValidateRejectsNegativeIndex(t *testing.T) {
 	}
 }
 
+func TestWorkflowGroupRecordValidateAcceptsCompleteRecord(t *testing.T) {
+	record := validWorkflowGroupRecord()
+
+	if err := record.Validate(); err != nil {
+		t.Fatalf("Validate returned error: %v", err)
+	}
+}
+
+func TestWorkflowGroupRecordValidateRequiresTaskIDs(t *testing.T) {
+	record := validWorkflowGroupRecord()
+	record.TaskIDs = nil
+
+	if err := record.Validate(); !errors.Is(err, ErrInvalidBackendRequest) {
+		t.Fatalf("Validate error = %v, want ErrInvalidBackendRequest", err)
+	}
+}
+
+func TestRecordWorkflowTaskCompletedRequestValidateAcceptsTerminalState(t *testing.T) {
+	request := RecordWorkflowTaskCompletedRequest{
+		GroupID:     "group-1",
+		TaskID:      "11111111-1111-4111-8111-111111111111",
+		State:       task.TaskSucceeded,
+		CompletedAt: time.Date(2026, time.June, 15, 12, 0, 0, 0, time.UTC),
+	}
+
+	if err := request.Validate(); err != nil {
+		t.Fatalf("Validate returned error: %v", err)
+	}
+}
+
+func TestRecordWorkflowTaskCompletedRequestValidateRejectsNonTerminalState(t *testing.T) {
+	request := RecordWorkflowTaskCompletedRequest{
+		GroupID:     "group-1",
+		TaskID:      "11111111-1111-4111-8111-111111111111",
+		State:       task.TaskStarted,
+		CompletedAt: time.Date(2026, time.June, 15, 12, 0, 0, 0, time.UTC),
+	}
+
+	if err := request.Validate(); !errors.Is(err, ErrInvalidBackendRequest) {
+		t.Fatalf("Validate error = %v, want ErrInvalidBackendRequest", err)
+	}
+}
+
+func validWorkflowGroupRecord() WorkflowGroupRecord {
+	return WorkflowGroupRecord{
+		ID: "group-1",
+		TaskIDs: []task.TaskID{
+			"11111111-1111-4111-8111-111111111111",
+			"22222222-2222-4222-8222-222222222222",
+		},
+		CreatedAt: time.Date(2026, time.June, 15, 10, 0, 0, 0, time.UTC),
+	}
+}
+
 func validWorkflowChainRecord() WorkflowChainRecord {
 	return WorkflowChainRecord{
 		ID:         "chain-1",
