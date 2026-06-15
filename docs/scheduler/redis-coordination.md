@@ -33,3 +33,10 @@ the lease expires and another scheduler can claim it later.
 If dispatch succeeds but marking fails, the scheduler returns the error. The
 definition may be retried after the lease expires, so task handlers should remain
 idempotent when they are used as periodic jobs.
+
+## Deployment Notes
+
+Run at least one scheduler process for each Redis namespace that owns periodic
+definitions. Running more than one scheduler process is supported for
+availability, but all scheduler processes for the namespace should use the same
+application configuration and task registration code.
