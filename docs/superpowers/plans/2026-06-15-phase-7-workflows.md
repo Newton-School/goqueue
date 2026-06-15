@@ -69,7 +69,7 @@
 - [x] Add `Canvas` with default queue, codec, and clock options.
 - [x] Add `ApplySignature`, `ApplyChain`, `ApplyGroup`, and `ApplyChord`.
 - [x] Persist workflow state before dispatching workflow task instances.
-- [ ] Add workflow metadata to dispatched task instances.
+- [x] Add workflow metadata to dispatched task instances.
 - [ ] Verify with `go test ./workflow`.
 - [ ] Commit each canvas behavior.
 
