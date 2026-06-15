@@ -999,6 +999,86 @@ func TestWorkerAdvancesChainAfterSuccessfulTask(t *testing.T) {
 	}
 }
 
+func TestWorkerDoesNotAdvanceChainAfterFailedTask(t *testing.T) {
+	registry := task.NewTaskRegistry()
+	if err := registry.Register("email.send", task.TaskHandlerFunc(func(_ task.HandlerContext, _ task.TaskPayload) (task.TaskResult, error) {
+		return task.TaskResult{}, errTask
+	})); err != nil {
+		t.Fatalf("Register returned error: %v", err)
+	}
+
+	now := time.Date(2026, time.June, 15, 9, 0, 0, 0, time.UTC)
+	message := readyMessage(t, task.JSONPayloadCodec{}, testEnvelopeInput{
+		name:      "email.send",
+		queue:     "billing",
+		createdAt: now,
+		metadata: map[string]string{
+			"goqueue.workflow.kind":       "chain",
+			"goqueue.workflow.chain_id":   "chain-1",
+			"goqueue.workflow.chain_step": "0",
+		},
+	})
+	ackCh := make(chan struct{}, 1)
+	fake := &fakeBackend{
+		readReadyFn: makeReadOnce(message),
+		ackFn: func(_ context.Context, _ backend.AckRequest) error {
+			select {
+			case ackCh <- struct{}{}:
+			default:
+			}
+			return nil
+		},
+		moveDueFn: func(_ context.Context, _ backend.MoveDueScheduledRequest) ([]backend.MovedScheduledMessage, error) {
+			return nil, nil
+		},
+	}
+
+	worker, err := NewWorker(
+		fake,
+		registry,
+		WithWorkerGroup("workers"),
+		WithWorkerConsumer("pod-1"),
+		WithWorkerReadBatch(1),
+		WithWorkerBlock(0),
+		WithWorkerIdleDelay(1*time.Millisecond),
+		WithWorkerNow(func() time.Time { return now }),
+		WithWorkerMoveDueEnabled(false),
+		WithWorkerQueue("billing"),
+	)
+	if err != nil {
+		t.Fatalf("NewWorker returned error: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- worker.Start(ctx)
+	}()
+
+	select {
+	case <-ackCh:
+	case <-time.After(2 * time.Second):
+		t.Fatal("task was not acknowledged")
+	}
+	cancel()
+
+	select {
+	case gotErr := <-errCh:
+		if gotErr != nil {
+			t.Fatalf("Start returned error: %v", gotErr)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("Start did not return")
+	}
+
+	if len(fake.advanceChainRequests) != 0 {
+		t.Fatalf("advance chain calls = %d, want 0", len(fake.advanceChainRequests))
+	}
+	if len(fake.enqueueReadyRequests) != 0 {
+		t.Fatalf("enqueue ready calls = %d, want 0", len(fake.enqueueReadyRequests))
+	}
+}
+
 func TestWorkerRecordsGroupProgressAfterTerminalTask(t *testing.T) {
 	registry := task.NewTaskRegistry()
 	if err := registry.Register("email.send", task.TaskHandlerFunc(func(_ task.HandlerContext, _ task.TaskPayload) (task.TaskResult, error) {
