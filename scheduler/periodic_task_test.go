@@ -114,6 +114,24 @@ func TestPeriodicTaskFirstDueUsesFutureStartAt(t *testing.T) {
 	}
 }
 
+func TestPeriodicTaskFirstDueNormalizesFutureStartAtToUTC(t *testing.T) {
+	location := time.FixedZone("IST", 5*60*60+30*60)
+	now := time.Date(2026, time.June, 15, 10, 0, 0, 0, time.UTC)
+	startAt := time.Date(2026, time.June, 15, 15, 35, 0, 0, location)
+	definition := validPeriodicTask()
+	definition.StartAt = startAt
+
+	next := definition.FirstDueAfter(now)
+
+	want := time.Date(2026, time.June, 15, 10, 5, 0, 0, time.UTC)
+	if !next.Equal(want) {
+		t.Fatalf("FirstDueAfter = %v, want %v", next, want)
+	}
+	if next.Location() != time.UTC {
+		t.Fatalf("FirstDueAfter location = %v, want UTC", next.Location())
+	}
+}
+
 func TestPeriodicTaskFirstDueUsesNowWhenStartAtHasPassed(t *testing.T) {
 	now := time.Date(2026, time.June, 15, 10, 0, 0, 0, time.UTC)
 	definition := validPeriodicTask()
