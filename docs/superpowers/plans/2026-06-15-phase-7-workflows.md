@@ -98,7 +98,7 @@
 - Create: `docs/workflows/redis-state.md`
 - Modify this plan.
 
-- [ ] Add `App.NewCanvas` with app defaults.
+- [x] Add `App.NewCanvas` with app defaults.
 - [ ] Re-export workflow types, results, options, and metadata constants.
 - [ ] Document signature, chain, group, and chord usage.
 - [ ] Document Redis workflow state and idempotency behavior.
