@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Newton-School/goqueue/backend"
+	"github.com/redis/go-redis/v9"
 )
 
 // UpsertPeriodicTask stores or replaces a periodic task definition.
@@ -16,7 +17,20 @@ func (b *Backend) UpsertPeriodicTask(ctx context.Context, request backend.Upsert
 		return err
 	}
 
-	return fmt.Errorf("%w: periodic upsert not implemented", ErrInvalidRedisMessage)
+	encoded, err := (periodicTaskCodec{}).encode(request.Record)
+	if err != nil {
+		return err
+	}
+
+	pipe := b.client.TxPipeline()
+	pipe.HSet(ctx, b.keys.periodicDefinitionsHash(), request.Record.Name, string(encoded))
+	pipe.ZAdd(ctx, b.keys.periodicDueSet(), redis.Z{
+		Score:  float64(unixMillis(request.Record.NextDueAt)),
+		Member: request.Record.Name,
+	})
+
+	_, err = pipe.Exec(ctx)
+	return err
 }
 
 // DeletePeriodicTask removes a periodic task definition.
