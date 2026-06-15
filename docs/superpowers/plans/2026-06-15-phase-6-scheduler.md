@@ -87,7 +87,7 @@
 - [x] Document periodic job registration, scheduler pod behavior, and Redis coordination.
 - [ ] Mark this plan complete.
 - [x] Verify with `go test ./...` and `go vet ./...`.
-- [ ] Commit final docs and verification.
+- [x] Commit final docs and verification.
 
 ### Acceptance Criteria
 
