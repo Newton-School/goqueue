@@ -211,6 +211,8 @@ Phase 5 and earlier backend capabilities:
 - Consumer group creation, stream reads, and acknowledgements.
 - Dead-letter streams for unrecoverable worker failures.
 - Stale pending message recovery through Redis `XAUTOCLAIM`.
+- Periodic task definitions backed by Redis hashes and due-time sorted sets.
+- Short-lived Redis leases for multi-pod scheduler coordination.
 - Task state and task result storage with TTL-ready APIs.
 - Queue stats for ready, scheduled, and dead-letter counts.
 
@@ -274,7 +276,7 @@ module root.
 1. ✅ Producer API for immediate and delayed tasks.
 2. ✅ Worker runtime with acknowledgements and graceful shutdown.
 3. ✅ Retries, dead-letter queues, and task expiration.
-4. Scheduler and periodic jobs.
+4. ✅ Scheduler and periodic jobs.
 5. Canvas primitives: chains, groups, and chords.
 6. Observability, inspection APIs, and CLI commands.
 
