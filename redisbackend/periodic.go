@@ -127,7 +127,47 @@ func (b *Backend) MarkPeriodicTaskDispatched(ctx context.Context, request backen
 		return err
 	}
 
-	return fmt.Errorf("%w: periodic dispatch mark not implemented", ErrInvalidRedisMessage)
+	encoded, err := b.client.HGet(ctx, b.keys.periodicDefinitionsHash(), request.Name).Bytes()
+	if err == redis.Nil {
+		return backend.ErrPeriodicTaskNotFound
+	}
+	if err != nil {
+		return err
+	}
+
+	record, err := (periodicTaskCodec{}).decode(encoded)
+	if err != nil {
+		return err
+	}
+	record.NextDueAt = request.NextDueAt.UTC()
+	record.UpdatedAt = request.DispatchedAt.UTC()
+
+	updated, err := (periodicTaskCodec{}).encode(record)
+	if err != nil {
+		return err
+	}
+
+	result, err := redis.NewScript(markPeriodicDispatchedScript()).Run(
+		ctx,
+		b.client,
+		[]string{
+			b.keys.periodicDefinitionsHash(),
+			b.keys.periodicDueSet(),
+			b.keys.periodicLease(request.Name),
+		},
+		request.LockToken,
+		request.Name,
+		string(updated),
+		unixMillis(request.NextDueAt),
+	).Int64()
+	if err != nil {
+		return err
+	}
+	if result == 0 {
+		return backend.ErrPeriodicTaskLeaseLost
+	}
+
+	return nil
 }
 
 func newPeriodicLockToken() (string, error) {
