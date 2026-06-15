@@ -307,6 +307,9 @@ func (w *Worker) processMessage(ctx context.Context, message backend.ReadyMessag
 	if err := w.saveResult(ctx, envelope.ID, result); err != nil {
 		return err
 	}
+	if err := w.advanceWorkflow(ctx, envelope, finalState); err != nil {
+		return err
+	}
 
 	return w.ack(ctx, message.StreamID)
 }

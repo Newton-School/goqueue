@@ -906,6 +906,99 @@ func TestWorkerDoesNotClaimPendingWhenRecoveryDisabled(t *testing.T) {
 	}
 }
 
+func TestWorkerAdvancesChainAfterSuccessfulTask(t *testing.T) {
+	registry := task.NewTaskRegistry()
+	if err := registry.Register("email.send", task.TaskHandlerFunc(func(_ task.HandlerContext, _ task.TaskPayload) (task.TaskResult, error) {
+		return task.SucceededResult("done"), nil
+	})); err != nil {
+		t.Fatalf("Register returned error: %v", err)
+	}
+
+	now := time.Date(2026, time.June, 15, 9, 0, 0, 0, time.UTC)
+	message := readyMessage(t, task.JSONPayloadCodec{}, testEnvelopeInput{
+		name:      "email.send",
+		queue:     "billing",
+		createdAt: now,
+		metadata: map[string]string{
+			"goqueue.workflow.kind":       "chain",
+			"goqueue.workflow.chain_id":   "chain-1",
+			"goqueue.workflow.chain_step": "0",
+		},
+	})
+	next := backend.WorkflowSignatureRecord{
+		Name:        "email.audit",
+		Queue:       "billing",
+		Priority:    task.DefaultPriority,
+		RetryPolicy: task.DefaultRetryPolicy(),
+	}
+	ackCh := make(chan struct{}, 1)
+	fake := &fakeBackend{
+		readReadyFn: makeReadOnce(message),
+		advanceChainResponse: backend.AdvanceWorkflowChainResponse{
+			Advanced: true,
+			Next:     &next,
+		},
+		ackFn: func(_ context.Context, _ backend.AckRequest) error {
+			select {
+			case ackCh <- struct{}{}:
+			default:
+			}
+			return nil
+		},
+		moveDueFn: func(_ context.Context, _ backend.MoveDueScheduledRequest) ([]backend.MovedScheduledMessage, error) {
+			return nil, nil
+		},
+	}
+
+	worker, err := NewWorker(
+		fake,
+		registry,
+		WithWorkerGroup("workers"),
+		WithWorkerConsumer("pod-1"),
+		WithWorkerReadBatch(1),
+		WithWorkerBlock(0),
+		WithWorkerIdleDelay(1*time.Millisecond),
+		WithWorkerNow(func() time.Time { return now }),
+		WithWorkerMoveDueEnabled(false),
+		WithWorkerQueue("billing"),
+	)
+	if err != nil {
+		t.Fatalf("NewWorker returned error: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- worker.Start(ctx)
+	}()
+
+	select {
+	case <-ackCh:
+	case <-time.After(2 * time.Second):
+		t.Fatal("task was not acknowledged")
+	}
+	cancel()
+
+	select {
+	case gotErr := <-errCh:
+		if gotErr != nil {
+			t.Fatalf("Start returned error: %v", gotErr)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("Start did not return")
+	}
+
+	if len(fake.advanceChainRequests) != 1 {
+		t.Fatalf("advance chain calls = %d, want 1", len(fake.advanceChainRequests))
+	}
+	if len(fake.enqueueReadyRequests) != 1 {
+		t.Fatalf("enqueue ready calls = %d, want 1", len(fake.enqueueReadyRequests))
+	}
+	if fake.enqueueReadyRequests[0].Message.Name != "email.audit" {
+		t.Fatalf("next task name = %q, want email.audit", fake.enqueueReadyRequests[0].Message.Name)
+	}
+}
+
 type fakeBackend struct {
 	mu                       sync.Mutex
 	ensureGroupRequests      []backend.ConsumerGroupRequest
@@ -916,6 +1009,9 @@ type fakeBackend struct {
 	resultRequests           []backend.TaskResultRecord
 	ackRequests              []backend.AckRequest
 	deadLetterRequests       []backend.DeadLetterRequest
+	enqueueReadyRequests     []backend.EnqueueRequest
+	advanceChainRequests     []backend.AdvanceWorkflowChainRequest
+	recordGroupRequests      []backend.RecordWorkflowTaskCompletedRequest
 	enqueueScheduledRequests []backend.EnqueueRequest
 	ensureConsumerGroupErr   error
 	moveDueScheduledErr      error
@@ -929,11 +1025,16 @@ type fakeBackend struct {
 	saveTaskResultErr        error
 	deadLetterErr            error
 	enqueueScheduledErr      error
+	advanceChainResponse     backend.AdvanceWorkflowChainResponse
+	recordGroupResponse      backend.WorkflowGroupProgress
 	enqueueScheduledFn       func(context.Context, backend.EnqueueRequest) (backend.EnqueueResponse, error)
 }
 
-func (f *fakeBackend) EnqueueReady(_ context.Context, _ backend.EnqueueRequest) (backend.EnqueueResponse, error) {
-	return backend.EnqueueResponse{}, nil
+func (f *fakeBackend) EnqueueReady(_ context.Context, req backend.EnqueueRequest) (backend.EnqueueResponse, error) {
+	f.mu.Lock()
+	f.enqueueReadyRequests = append(f.enqueueReadyRequests, req)
+	f.mu.Unlock()
+	return backend.EnqueueResponse{TaskID: task.TaskID(req.Message.ID), StreamID: "next-1"}, nil
 }
 
 func (f *fakeBackend) EnqueueScheduled(ctx context.Context, req backend.EnqueueRequest) (backend.EnqueueResponse, error) {
@@ -1052,16 +1153,22 @@ func (f *fakeBackend) SaveWorkflowChain(_ context.Context, _ backend.WorkflowCha
 	return nil
 }
 
-func (f *fakeBackend) AdvanceWorkflowChain(_ context.Context, _ backend.AdvanceWorkflowChainRequest) (backend.AdvanceWorkflowChainResponse, error) {
-	return backend.AdvanceWorkflowChainResponse{}, nil
+func (f *fakeBackend) AdvanceWorkflowChain(_ context.Context, req backend.AdvanceWorkflowChainRequest) (backend.AdvanceWorkflowChainResponse, error) {
+	f.mu.Lock()
+	f.advanceChainRequests = append(f.advanceChainRequests, req)
+	f.mu.Unlock()
+	return f.advanceChainResponse, nil
 }
 
 func (f *fakeBackend) SaveWorkflowGroup(_ context.Context, _ backend.WorkflowGroupRecord) error {
 	return nil
 }
 
-func (f *fakeBackend) RecordWorkflowTaskCompleted(_ context.Context, _ backend.RecordWorkflowTaskCompletedRequest) (backend.WorkflowGroupProgress, error) {
-	return backend.WorkflowGroupProgress{}, nil
+func (f *fakeBackend) RecordWorkflowTaskCompleted(_ context.Context, req backend.RecordWorkflowTaskCompletedRequest) (backend.WorkflowGroupProgress, error) {
+	f.mu.Lock()
+	f.recordGroupRequests = append(f.recordGroupRequests, req)
+	f.mu.Unlock()
+	return f.recordGroupResponse, nil
 }
 
 func (f *fakeBackend) SetTaskState(_ context.Context, record backend.TaskStateRecord) error {
@@ -1105,6 +1212,7 @@ func (f *fakeBackend) Close() error {
 type testEnvelopeInput struct {
 	name        string
 	queue       string
+	metadata    map[string]string
 	attempt     int
 	createdAt   time.Time
 	retryPolicy task.RetryPolicy
@@ -1117,6 +1225,7 @@ func readyMessage(t *testing.T, codec task.PayloadCodec, input testEnvelopeInput
 	envelope, err := task.NewTaskEnvelope(task.TaskEnvelopeInput{
 		Name:        task.TaskName(input.name),
 		Queue:       task.QueueName(input.queue),
+		Metadata:    input.metadata,
 		CreatedAt:   input.createdAt,
 		Attempt:     input.attempt,
 		RetryPolicy: input.retryPolicy,
