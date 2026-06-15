@@ -19,6 +19,9 @@ var (
 	// ErrConsumerGroupNotFound is returned when a queue consumer group is missing.
 	ErrConsumerGroupNotFound = errors.New("goqueue backend: consumer group not found")
 
+	// ErrPeriodicTaskLeaseLost is returned when a scheduler no longer owns a periodic lease.
+	ErrPeriodicTaskLeaseLost = errors.New("goqueue backend: periodic task lease lost")
+
 	// ErrInvalidBackendRequest is returned when a backend request is incomplete.
 	ErrInvalidBackendRequest = errors.New("goqueue backend: invalid request")
 
