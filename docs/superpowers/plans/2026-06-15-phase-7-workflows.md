@@ -103,7 +103,7 @@
 - [x] Document signature, chain, group, and chord usage.
 - [x] Document Redis workflow state and idempotency behavior.
 - [x] Verify with `go test ./...` and `go vet ./...`.
-- [ ] Phase 7 creates exactly 100 commits from the pre-phase baseline.
+- [x] Phase 7 creates exactly 100 commits from the pre-phase baseline.
 
 ### Acceptance Criteria
 
@@ -115,4 +115,4 @@
 - [x] Redis state prevents duplicate chain advancement and duplicate chord callbacks.
 - [x] Public root package exports workflow APIs.
 - [x] `go test ./...` and `go vet ./...` pass.
-- [ ] Phase 7 creates exactly 100 commits from the Phase 6 baseline.
+- [x] Phase 7 creates exactly 100 commits from the Phase 6 baseline.
