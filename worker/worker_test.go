@@ -1048,6 +1048,22 @@ func (f *fakeBackend) MarkPeriodicTaskDispatched(_ context.Context, _ backend.Ma
 	return nil
 }
 
+func (f *fakeBackend) SaveWorkflowChain(_ context.Context, _ backend.WorkflowChainRecord) error {
+	return nil
+}
+
+func (f *fakeBackend) AdvanceWorkflowChain(_ context.Context, _ backend.AdvanceWorkflowChainRequest) (backend.AdvanceWorkflowChainResponse, error) {
+	return backend.AdvanceWorkflowChainResponse{}, nil
+}
+
+func (f *fakeBackend) SaveWorkflowGroup(_ context.Context, _ backend.WorkflowGroupRecord) error {
+	return nil
+}
+
+func (f *fakeBackend) RecordWorkflowTaskCompleted(_ context.Context, _ backend.RecordWorkflowTaskCompletedRequest) (backend.WorkflowGroupProgress, error) {
+	return backend.WorkflowGroupProgress{}, nil
+}
+
 func (f *fakeBackend) SetTaskState(_ context.Context, record backend.TaskStateRecord) error {
 	f.mu.Lock()
 	f.setStateRequests = append(f.setStateRequests, record)
