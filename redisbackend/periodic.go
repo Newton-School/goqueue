@@ -42,7 +42,13 @@ func (b *Backend) DeletePeriodicTask(ctx context.Context, request backend.Delete
 		return err
 	}
 
-	return fmt.Errorf("%w: periodic delete not implemented", ErrInvalidRedisMessage)
+	pipe := b.client.TxPipeline()
+	pipe.HDel(ctx, b.keys.periodicDefinitionsHash(), request.Name)
+	pipe.ZRem(ctx, b.keys.periodicDueSet(), request.Name)
+	pipe.Del(ctx, b.keys.periodicLease(request.Name))
+
+	_, err := pipe.Exec(ctx)
+	return err
 }
 
 // ListDuePeriodicTasks leases due periodic task definitions for a scheduler.
