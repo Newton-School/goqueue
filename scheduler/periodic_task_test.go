@@ -89,6 +89,15 @@ func TestPeriodicTaskNormalizeCopiesMutableFields(t *testing.T) {
 	}
 }
 
+func TestPeriodicTaskNormalizeRejectsInvalidDefaultQueue(t *testing.T) {
+	definition := validPeriodicTask()
+	definition.Queue = ""
+
+	if _, err := definition.Normalize("invalid queue"); !errors.Is(err, task.ErrInvalidQueueName) {
+		t.Fatalf("Normalize error = %v, want ErrInvalidQueueName", err)
+	}
+}
+
 func TestPeriodicTaskFirstDueDefaultsToOneIntervalAfterNow(t *testing.T) {
 	now := time.Date(2026, time.June, 15, 10, 0, 0, 0, time.UTC)
 	definition := validPeriodicTask()
