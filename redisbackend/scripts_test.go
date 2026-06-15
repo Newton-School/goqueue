@@ -34,3 +34,13 @@ func TestMoveDueScheduledScriptMovesDueTasks(t *testing.T) {
 		}
 	}
 }
+
+func TestMarkPeriodicDispatchedScriptVerifiesLeaseToken(t *testing.T) {
+	script := markPeriodicDispatchedScript()
+
+	for _, fragment := range []string{"redis.call('GET'", "token ~= ARGV[1]", "redis.call('HSET'", "redis.call('ZADD'", "redis.call('DEL'"} {
+		if !strings.Contains(script, fragment) {
+			t.Fatalf("periodic mark script missing %q in %s", fragment, script)
+		}
+	}
+}
