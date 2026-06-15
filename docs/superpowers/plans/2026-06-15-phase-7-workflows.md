@@ -99,7 +99,7 @@
 - Modify this plan.
 
 - [x] Add `App.NewCanvas` with app defaults.
-- [ ] Re-export workflow types, results, options, and metadata constants.
+- [x] Re-export workflow types, results, options, and metadata constants.
 - [ ] Document signature, chain, group, and chord usage.
 - [ ] Document Redis workflow state and idempotency behavior.
 - [ ] Verify with `go test ./...` and `go vet ./...`.
