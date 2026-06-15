@@ -25,6 +25,51 @@ type Scheduler struct {
 	now          func() time.Time
 }
 
+// Identity returns the scheduler identity used for Redis leases.
+func (s *Scheduler) Identity() string {
+	if s == nil {
+		return ""
+	}
+
+	return s.identity
+}
+
+// DefaultQueue returns the scheduler default queue.
+func (s *Scheduler) DefaultQueue() task.QueueName {
+	if s == nil {
+		return ""
+	}
+
+	return s.defaultQueue
+}
+
+// PollInterval returns how often Start polls for due definitions.
+func (s *Scheduler) PollInterval() time.Duration {
+	if s == nil {
+		return 0
+	}
+
+	return s.pollInterval
+}
+
+// BatchSize returns the due definition claim limit.
+func (s *Scheduler) BatchSize() int64 {
+	if s == nil {
+		return 0
+	}
+
+	return s.batchSize
+}
+
+// LockTTL returns the due definition lease duration.
+func (s *Scheduler) LockTTL() time.Duration {
+	if s == nil {
+		return 0
+	}
+
+	return s.lockTTL
+}
+
 // NewScheduler creates a scheduler bound to a backend.
 func NewScheduler(queueBackend backend.QueueBackend, opts ...SchedulerOption) (*Scheduler, error) {
 	if queueBackend == nil {

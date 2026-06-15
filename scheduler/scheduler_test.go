@@ -65,6 +65,36 @@ func TestNewSchedulerGeneratesIdentity(t *testing.T) {
 	}
 }
 
+func TestSchedulerAccessorsExposeRuntimeConfiguration(t *testing.T) {
+	scheduler, err := NewScheduler(
+		&fakeBackend{},
+		WithSchedulerIdentity("scheduler-1"),
+		WithSchedulerDefaultQueue("critical"),
+		WithSchedulerBatchSize(12),
+		WithSchedulerLockTTL(time.Minute),
+		WithSchedulerPollInterval(2*time.Second),
+	)
+	if err != nil {
+		t.Fatalf("NewScheduler returned error: %v", err)
+	}
+
+	if scheduler.Identity() != "scheduler-1" {
+		t.Fatalf("Identity = %q, want scheduler-1", scheduler.Identity())
+	}
+	if scheduler.DefaultQueue() != "critical" {
+		t.Fatalf("DefaultQueue = %q, want critical", scheduler.DefaultQueue())
+	}
+	if scheduler.BatchSize() != 12 {
+		t.Fatalf("BatchSize = %d, want 12", scheduler.BatchSize())
+	}
+	if scheduler.LockTTL() != time.Minute {
+		t.Fatalf("LockTTL = %v, want 1m", scheduler.LockTTL())
+	}
+	if scheduler.PollInterval() != 2*time.Second {
+		t.Fatalf("PollInterval = %v, want 2s", scheduler.PollInterval())
+	}
+}
+
 func TestSchedulerRegisterPeriodicTaskUpsertsBackendRecord(t *testing.T) {
 	now := time.Date(2026, time.June, 15, 10, 0, 0, 0, time.UTC)
 	backend := &fakeBackend{}
