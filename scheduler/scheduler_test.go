@@ -299,6 +299,23 @@ func TestSchedulerStartPollsImmediately(t *testing.T) {
 	}
 }
 
+func TestSchedulerStartReturnsPollError(t *testing.T) {
+	backend := &fakeBackend{listDueErr: errSchedulerTest}
+	scheduler, err := NewScheduler(
+		backend,
+		WithSchedulerIdentity("scheduler-1"),
+		WithSchedulerPollInterval(time.Hour),
+	)
+	if err != nil {
+		t.Fatalf("NewScheduler returned error: %v", err)
+	}
+
+	err = scheduler.Start(context.Background())
+	if !errors.Is(err, errSchedulerTest) {
+		t.Fatalf("Start error = %v, want errSchedulerTest", err)
+	}
+}
+
 type fakeBackend struct {
 	mu                   sync.Mutex
 	upsertRequests       []backend.UpsertPeriodicTaskRequest
@@ -310,6 +327,7 @@ type fakeBackend struct {
 	enqueueReadyErr      error
 	markErr              error
 	listDueHook          func()
+	listDueErr           error
 }
 
 func (f *fakeBackend) EnqueueReady(_ context.Context, request backend.EnqueueRequest) (backend.EnqueueResponse, error) {
@@ -361,6 +379,9 @@ func (f *fakeBackend) ListDuePeriodicTasks(_ context.Context, request backend.Li
 	f.listDueRequests = append(f.listDueRequests, request)
 	if f.listDueHook != nil {
 		f.listDueHook()
+	}
+	if f.listDueErr != nil {
+		return nil, f.listDueErr
 	}
 	return append([]backend.DuePeriodicTask(nil), f.dueTasks...), nil
 }
