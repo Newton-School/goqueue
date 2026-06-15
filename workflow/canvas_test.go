@@ -122,11 +122,58 @@ func TestCanvasApplyChainStoresChainBeforeDispatch(t *testing.T) {
 	}
 }
 
+func TestCanvasApplyGroupStoresGroupAndDispatchesChildren(t *testing.T) {
+	backend := &fakeBackend{}
+	canvas, err := NewCanvas(backend, WithCanvasDefaultQueue("critical"))
+	if err != nil {
+		t.Fatalf("NewCanvas returned error: %v", err)
+	}
+	first := validSignature()
+	first.Queue = ""
+	second := validSignature()
+	second.Name = "email.audit"
+	second.Queue = ""
+
+	result, err := canvas.ApplyGroup(context.Background(), Group{Signatures: []Signature{first, second}})
+	if err != nil {
+		t.Fatalf("ApplyGroup returned error: %v", err)
+	}
+
+	if result.GroupID == "" || len(result.TaskIDs) != 2 {
+		t.Fatalf("result = %+v, want group id and two task ids", result)
+	}
+	if len(backend.savedGroups) != 1 {
+		t.Fatalf("saved groups = %d, want 1", len(backend.savedGroups))
+	}
+	if backend.savedGroups[0].ID != result.GroupID.String() {
+		t.Fatalf("group id = %q, want %q", backend.savedGroups[0].ID, result.GroupID)
+	}
+	if len(backend.enqueueReadyRequests) != 2 {
+		t.Fatalf("enqueue calls = %d, want 2", len(backend.enqueueReadyRequests))
+	}
+	for index, request := range backend.enqueueReadyRequests {
+		message := request.Message
+		if message.ID != result.TaskIDs[index].String() {
+			t.Fatalf("message %d id = %q, want %q", index, message.ID, result.TaskIDs[index])
+		}
+		if message.Metadata[MetadataKindKey] != WorkflowKindGroup {
+			t.Fatalf("message %d kind = %q, want group", index, message.Metadata[MetadataKindKey])
+		}
+		if message.Metadata[MetadataGroupIDKey] != result.GroupID.String() {
+			t.Fatalf("message %d group id = %q, want group id", index, message.Metadata[MetadataGroupIDKey])
+		}
+		if message.Metadata[MetadataGroupIndexKey] != workflowIndexMetadata(index) {
+			t.Fatalf("message %d group index = %q, want %d", index, message.Metadata[MetadataGroupIndexKey], index)
+		}
+	}
+}
+
 type fakeBackend struct {
 	mu                   sync.Mutex
 	enqueueReadyRequests []backend.EnqueueRequest
 	setStateRequests     []backend.TaskStateRecord
 	savedChains          []backend.WorkflowChainRecord
+	savedGroups          []backend.WorkflowGroupRecord
 }
 
 func (f *fakeBackend) EnqueueReady(_ context.Context, request backend.EnqueueRequest) (backend.EnqueueResponse, error) {
@@ -178,7 +225,10 @@ func (f *fakeBackend) SaveWorkflowChain(_ context.Context, record backend.Workfl
 func (f *fakeBackend) AdvanceWorkflowChain(context.Context, backend.AdvanceWorkflowChainRequest) (backend.AdvanceWorkflowChainResponse, error) {
 	return backend.AdvanceWorkflowChainResponse{}, nil
 }
-func (f *fakeBackend) SaveWorkflowGroup(context.Context, backend.WorkflowGroupRecord) error {
+func (f *fakeBackend) SaveWorkflowGroup(_ context.Context, record backend.WorkflowGroupRecord) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.savedGroups = append(f.savedGroups, record)
 	return nil
 }
 func (f *fakeBackend) RecordWorkflowTaskCompleted(context.Context, backend.RecordWorkflowTaskCompletedRequest) (backend.WorkflowGroupProgress, error) {

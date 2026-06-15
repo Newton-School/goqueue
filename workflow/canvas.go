@@ -114,6 +114,49 @@ func (c *Canvas) ApplyChain(ctx context.Context, chain Chain) (ChainResult, erro
 	return ChainResult{WorkflowID: workflowID, FirstTask: firstTaskID}, nil
 }
 
+// ApplyGroup stores a group workflow and dispatches all child signatures.
+func (c *Canvas) ApplyGroup(ctx context.Context, group Group) (GroupResult, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	groupID, err := newWorkflowID()
+	if err != nil {
+		return GroupResult{}, err
+	}
+	normalized, err := group.Normalize(c.defaultQueue)
+	if err != nil {
+		return GroupResult{}, err
+	}
+
+	taskIDs, err := generateTaskIDs(len(normalized.Signatures))
+	if err != nil {
+		return GroupResult{}, err
+	}
+	record, err := normalized.toBackendRecord(groupID.String(), c.defaultQueue, taskIDs, nil, c.now())
+	if err != nil {
+		return GroupResult{}, err
+	}
+	if err := c.backend.SaveWorkflowGroup(ctx, record); err != nil {
+		return GroupResult{}, err
+	}
+
+	for index, signature := range normalized.Signatures {
+		signatureRecord, err := signature.toBackendRecord(c.defaultQueue)
+		if err != nil {
+			return GroupResult{}, err
+		}
+		if _, err := c.applyRecord(ctx, signatureRecord, taskIDs[index], map[string]string{
+			MetadataKindKey:       WorkflowKindGroup,
+			MetadataGroupIDKey:    groupID.String(),
+			MetadataGroupIndexKey: workflowIndexMetadata(index),
+		}); err != nil {
+			return GroupResult{}, err
+		}
+	}
+
+	return GroupResult{GroupID: groupID, TaskIDs: taskIDs}, nil
+}
+
 func (c *Canvas) applyRecord(
 	ctx context.Context,
 	record backend.WorkflowSignatureRecord,
@@ -143,4 +186,16 @@ func workflowIndexMetadata(index int) string {
 
 func newWorkflowID() (task.TaskID, error) {
 	return task.NewTaskID()
+}
+
+func generateTaskIDs(count int) ([]task.TaskID, error) {
+	taskIDs := make([]task.TaskID, count)
+	for index := range taskIDs {
+		id, err := task.NewTaskID()
+		if err != nil {
+			return nil, err
+		}
+		taskIDs[index] = id
+	}
+	return taskIDs, nil
 }
