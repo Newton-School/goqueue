@@ -86,7 +86,7 @@
 - [x] Re-export scheduler types and options from the root package.
 - [x] Document periodic job registration, scheduler pod behavior, and Redis coordination.
 - [ ] Mark this plan complete.
-- [ ] Verify with `go test ./...` and `go vet ./...`.
+- [x] Verify with `go test ./...` and `go vet ./...`.
 - [ ] Commit final docs and verification.
 
 ### Acceptance Criteria
