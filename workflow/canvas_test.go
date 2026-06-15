@@ -176,6 +176,22 @@ func TestCanvasApplyGroupStoresGroupAndDispatchesChildren(t *testing.T) {
 	}
 }
 
+func TestCanvasApplyGroupDoesNotDispatchWhenSaveFails(t *testing.T) {
+	backend := &fakeBackend{saveGroupErr: errors.New("save group")}
+	canvas, err := NewCanvas(backend, WithCanvasDefaultQueue("critical"))
+	if err != nil {
+		t.Fatalf("NewCanvas returned error: %v", err)
+	}
+
+	_, err = canvas.ApplyGroup(context.Background(), Group{Signatures: []Signature{validSignature()}})
+	if err == nil {
+		t.Fatal("ApplyGroup expected error")
+	}
+	if len(backend.enqueueReadyRequests) != 0 {
+		t.Fatalf("enqueue calls = %d, want 0", len(backend.enqueueReadyRequests))
+	}
+}
+
 func TestCanvasApplyChordStoresCallbackAndDispatchesHeader(t *testing.T) {
 	backend := &fakeBackend{}
 	canvas, err := NewCanvas(backend, WithCanvasDefaultQueue("critical"))
@@ -226,6 +242,7 @@ type fakeBackend struct {
 	setStateRequests     []backend.TaskStateRecord
 	savedChains          []backend.WorkflowChainRecord
 	savedGroups          []backend.WorkflowGroupRecord
+	saveGroupErr         error
 }
 
 func (f *fakeBackend) EnqueueReady(_ context.Context, request backend.EnqueueRequest) (backend.EnqueueResponse, error) {
@@ -280,6 +297,9 @@ func (f *fakeBackend) AdvanceWorkflowChain(context.Context, backend.AdvanceWorkf
 func (f *fakeBackend) SaveWorkflowGroup(_ context.Context, record backend.WorkflowGroupRecord) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
+	if f.saveGroupErr != nil {
+		return f.saveGroupErr
+	}
 	f.savedGroups = append(f.savedGroups, record)
 	return nil
 }
