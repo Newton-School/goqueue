@@ -34,6 +34,26 @@ func (b keyBuilder) periodicLease(name string) string {
 	return fmt.Sprintf("%s:scheduler:periodic:%s:lease", b.namespace, name)
 }
 
+func (b keyBuilder) workflowChainMeta(id string) string {
+	return fmt.Sprintf("%s:workflow:chain:%s:meta", b.namespace, id)
+}
+
+func (b keyBuilder) workflowChainSignatures(id string) string {
+	return fmt.Sprintf("%s:workflow:chain:%s:signatures", b.namespace, id)
+}
+
+func (b keyBuilder) workflowGroupMeta(id string) string {
+	return fmt.Sprintf("%s:workflow:group:%s:meta", b.namespace, id)
+}
+
+func (b keyBuilder) workflowGroupCompleted(id string) string {
+	return fmt.Sprintf("%s:workflow:group:%s:completed", b.namespace, id)
+}
+
+func (b keyBuilder) workflowGroupCallback(id string) string {
+	return fmt.Sprintf("%s:workflow:group:%s:callback", b.namespace, id)
+}
+
 func (b keyBuilder) message(taskID string) string {
 	return fmt.Sprintf("%s:task:%s:message", b.namespace, taskID)
 }
