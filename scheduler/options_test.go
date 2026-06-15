@@ -63,12 +63,25 @@ func TestSchedulerOptionsValidateValues(t *testing.T) {
 	}
 }
 
+func TestSchedulerIdentityOptionTrimsWhitespace(t *testing.T) {
+	config := defaultSchedulerConfig()
+
+	if err := WithSchedulerIdentity(" scheduler-1 ")(&config); err != nil {
+		t.Fatalf("WithSchedulerIdentity returned error: %v", err)
+	}
+
+	if config.identity != "scheduler-1" {
+		t.Fatalf("identity = %q, want scheduler-1", config.identity)
+	}
+}
+
 func TestSchedulerOptionsRejectInvalidValues(t *testing.T) {
 	tests := []struct {
 		name   string
 		option SchedulerOption
 	}{
 		{name: "empty identity", option: WithSchedulerIdentity("")},
+		{name: "blank identity", option: WithSchedulerIdentity(" \t ")},
 		{name: "invalid queue", option: WithSchedulerDefaultQueue("invalid queue")},
 		{name: "non-positive poll", option: WithSchedulerPollInterval(0)},
 		{name: "non-positive batch", option: WithSchedulerBatchSize(0)},

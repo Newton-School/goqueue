@@ -2,6 +2,7 @@ package scheduler
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Newton-School/goqueue/task"
@@ -34,6 +35,7 @@ func defaultSchedulerConfig() schedulerConfig {
 // WithSchedulerIdentity sets the scheduler identity used in Redis leases.
 func WithSchedulerIdentity(identity string) SchedulerOption {
 	return func(config *schedulerConfig) error {
+		identity = strings.TrimSpace(identity)
 		if identity == "" {
 			return fmt.Errorf("%w: identity is required", ErrInvalidSchedulerOption)
 		}
