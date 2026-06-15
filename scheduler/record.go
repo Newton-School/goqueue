@@ -29,3 +29,27 @@ func (p PeriodicTask) toBackendRecord(defaultQueue task.QueueName, now time.Time
 		UpdatedAt:    now.UTC(),
 	}, nil
 }
+
+func periodicTaskFromBackendRecord(record backend.PeriodicTaskRecord) (PeriodicTask, error) {
+	if err := record.Validate(); err != nil {
+		return PeriodicTask{}, err
+	}
+
+	definition := PeriodicTask{
+		Name:        PeriodicTaskName(record.Name),
+		TaskName:    record.TaskName,
+		Queue:       record.Queue,
+		Args:        copyAnySlice(record.Args),
+		Kwargs:      copyAnyMap(record.Kwargs),
+		Metadata:    copyStringMap(record.Metadata),
+		Schedule:    Every(record.Interval),
+		StartAt:     record.StartAt,
+		Priority:    record.Priority,
+		RetryPolicy: record.RetryPolicy,
+	}
+	if err := definition.Validate(); err != nil {
+		return PeriodicTask{}, err
+	}
+
+	return definition, nil
+}
