@@ -29,6 +29,16 @@ type PeriodicTaskRecord struct {
 	UpdatedAt    time.Time
 }
 
+// UpsertPeriodicTaskRequest stores or replaces a periodic task definition.
+type UpsertPeriodicTaskRequest struct {
+	Record PeriodicTaskRecord
+}
+
+// Validate verifies that the upsert request contains a complete record.
+func (r UpsertPeriodicTaskRequest) Validate() error {
+	return r.Record.Validate()
+}
+
 // Validate verifies that a periodic task record is safe for backend storage.
 func (r PeriodicTaskRecord) Validate() error {
 	if r.Name == "" {

@@ -70,6 +70,19 @@ func TestPeriodicTaskRecordValidateRequiresNextDueAt(t *testing.T) {
 	}
 }
 
+func TestUpsertPeriodicTaskRequestValidateUsesRecordValidation(t *testing.T) {
+	request := UpsertPeriodicTaskRequest{Record: validPeriodicTaskRecord()}
+
+	if err := request.Validate(); err != nil {
+		t.Fatalf("Validate returned error: %v", err)
+	}
+
+	request.Record.Name = ""
+	if err := request.Validate(); !errors.Is(err, ErrInvalidBackendRequest) {
+		t.Fatalf("Validate error = %v, want ErrInvalidBackendRequest", err)
+	}
+}
+
 func validPeriodicTaskRecord() PeriodicTaskRecord {
 	return PeriodicTaskRecord{
 		Name:         "welcome-email",
