@@ -1,6 +1,9 @@
 package redisbackend
 
-import "testing"
+import (
+	"errors"
+	"testing"
+)
 
 func TestParseAdvanceWorkflowChainResponseWithNextSignature(t *testing.T) {
 	encoded, err := (workflowSignatureCodec{}).encode(testWorkflowSignatureRecord())
@@ -41,6 +44,13 @@ func TestParseAdvanceWorkflowChainResponseWithCompletedWorkflow(t *testing.T) {
 	}
 	if response.Next != nil {
 		t.Fatal("Next should be nil")
+	}
+}
+
+func TestParseAdvanceWorkflowChainResponseRejectsInvalidShape(t *testing.T) {
+	_, err := parseAdvanceWorkflowChainResponse([]any{int64(1), ""})
+	if !errors.Is(err, ErrInvalidRedisMessage) {
+		t.Fatalf("parseAdvanceWorkflowChainResponse error = %v, want ErrInvalidRedisMessage", err)
 	}
 }
 
@@ -86,5 +96,12 @@ func TestParseWorkflowGroupProgressWithoutCallback(t *testing.T) {
 	}
 	if progress.Callback != nil {
 		t.Fatal("Callback should be nil")
+	}
+}
+
+func TestParseWorkflowGroupProgressRejectsInvalidShape(t *testing.T) {
+	_, err := parseWorkflowGroupProgress("group-1", []any{int64(1), int64(1), ""})
+	if !errors.Is(err, ErrInvalidRedisMessage) {
+		t.Fatalf("parseWorkflowGroupProgress error = %v, want ErrInvalidRedisMessage", err)
 	}
 }
