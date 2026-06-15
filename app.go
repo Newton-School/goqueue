@@ -4,6 +4,7 @@ import (
 	"github.com/Newton-School/goqueue/producer"
 	"github.com/Newton-School/goqueue/scheduler"
 	"github.com/Newton-School/goqueue/worker"
+	"github.com/Newton-School/goqueue/workflow"
 )
 
 // App is the root goqueue application instance.
@@ -88,4 +89,19 @@ func (a *App) NewScheduler(opts ...scheduler.SchedulerOption) (*scheduler.Schedu
 	)
 
 	return scheduler.NewScheduler(backend, allOpts...)
+}
+
+// NewCanvas creates a workflow canvas for signatures, chains, groups, and chords.
+func (a *App) NewCanvas(opts ...workflow.CanvasOption) (*workflow.Canvas, error) {
+	backend, err := a.NewRedisBackend()
+	if err != nil {
+		return nil, err
+	}
+
+	allOpts := append(
+		[]workflow.CanvasOption{workflow.WithCanvasDefaultQueue(QueueName(a.config.DefaultQueue))},
+		opts...,
+	)
+
+	return workflow.NewCanvas(backend, allOpts...)
 }

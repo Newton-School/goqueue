@@ -125,6 +125,21 @@ func TestAppNewSchedulerUsesConfigDefaults(t *testing.T) {
 	}
 }
 
+func TestAppNewCanvasUsesConfigDefaults(t *testing.T) {
+	app, err := New(WithRedisURL("redis://localhost:6379/0"), WithDefaultQueue("billing"))
+	if err != nil {
+		t.Fatalf("New returned error: %v", err)
+	}
+
+	canvas, err := app.NewCanvas()
+	if err != nil {
+		t.Fatalf("NewCanvas returned error: %v", err)
+	}
+	if canvas == nil {
+		t.Fatal("NewCanvas returned nil")
+	}
+}
+
 func TestRootSchedulerExportsCompile(t *testing.T) {
 	definition := PeriodicTask{
 		Name:     PeriodicTaskName("welcome-email"),
