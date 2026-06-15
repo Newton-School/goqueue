@@ -35,7 +35,7 @@
 
 - [x] Add `UpsertPeriodicTask`, `DeletePeriodicTask`, `ListDuePeriodicTasks`, and `MarkPeriodicTaskDispatched` backend contracts.
 - [x] Add validation for periodic storage, due scans, and dispatch marking.
-- [ ] Update the backend interface acceptance test.
+- [x] Update the backend interface acceptance test.
 - [ ] Verify with `go test ./backend`.
 - [ ] Commit each contract slice.
 
