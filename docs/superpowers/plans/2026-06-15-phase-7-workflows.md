@@ -84,7 +84,7 @@
 - [x] Record group child terminal states after task result persistence.
 - [x] Dispatch chord callbacks once when a group succeeds.
 - [x] Preserve strict ack ordering by advancing workflows before acknowledgement.
-- [ ] Verify with `go test ./worker`.
+- [x] Verify with `go test ./worker`.
 - [ ] Commit each worker behavior.
 
 ### Task 6: Public API And Documentation
