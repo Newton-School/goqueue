@@ -146,6 +146,40 @@ func TestListDuePeriodicTasksRequestValidateRequiresPositiveLockTTL(t *testing.T
 	}
 }
 
+func TestDuePeriodicTaskValidateAcceptsCompleteRecord(t *testing.T) {
+	due := DuePeriodicTask{
+		Record:      validPeriodicTaskRecord(),
+		LockToken:   "token",
+		LockedUntil: time.Date(2026, time.June, 15, 10, 1, 0, 0, time.UTC),
+	}
+
+	if err := due.Validate(); err != nil {
+		t.Fatalf("Validate returned error: %v", err)
+	}
+}
+
+func TestDuePeriodicTaskValidateRequiresLockToken(t *testing.T) {
+	due := DuePeriodicTask{
+		Record:      validPeriodicTaskRecord(),
+		LockedUntil: time.Date(2026, time.June, 15, 10, 1, 0, 0, time.UTC),
+	}
+
+	if err := due.Validate(); !errors.Is(err, ErrInvalidBackendRequest) {
+		t.Fatalf("Validate error = %v, want ErrInvalidBackendRequest", err)
+	}
+}
+
+func TestDuePeriodicTaskValidateRequiresLockedUntil(t *testing.T) {
+	due := DuePeriodicTask{
+		Record:    validPeriodicTaskRecord(),
+		LockToken: "token",
+	}
+
+	if err := due.Validate(); !errors.Is(err, ErrInvalidBackendRequest) {
+		t.Fatalf("Validate error = %v, want ErrInvalidBackendRequest", err)
+	}
+}
+
 func validPeriodicTaskRecord() PeriodicTaskRecord {
 	return PeriodicTaskRecord{
 		Name:         "welcome-email",

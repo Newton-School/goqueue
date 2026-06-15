@@ -42,6 +42,13 @@ type ListDuePeriodicTasksRequest struct {
 	LockTTL     time.Duration
 }
 
+// DuePeriodicTask is a due periodic definition leased by one scheduler.
+type DuePeriodicTask struct {
+	Record      PeriodicTaskRecord
+	LockToken   string
+	LockedUntil time.Time
+}
+
 // Validate verifies that the upsert request contains a complete record.
 func (r UpsertPeriodicTaskRequest) Validate() error {
 	return r.Record.Validate()
@@ -60,6 +67,21 @@ func (r ListDuePeriodicTasksRequest) Validate() error {
 	}
 	if r.LockTTL <= 0 {
 		return fmt.Errorf("%w: lock ttl must be positive", ErrInvalidBackendRequest)
+	}
+
+	return nil
+}
+
+// Validate verifies that the due task is leased and dispatchable.
+func (d DuePeriodicTask) Validate() error {
+	if err := d.Record.Validate(); err != nil {
+		return err
+	}
+	if d.LockToken == "" {
+		return fmt.Errorf("%w: lock token is required", ErrInvalidBackendRequest)
+	}
+	if d.LockedUntil.IsZero() {
+		return fmt.Errorf("%w: locked until is required", ErrInvalidBackendRequest)
 	}
 
 	return nil
