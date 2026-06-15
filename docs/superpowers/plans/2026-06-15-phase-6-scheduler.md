@@ -82,7 +82,7 @@
 - Create: `docs/scheduler/periodic-jobs.md`
 - Modify: `docs/superpowers/plans/2026-06-15-phase-6-scheduler.md`
 
-- [ ] Add `App.NewScheduler` with app defaults.
+- [x] Add `App.NewScheduler` with app defaults.
 - [ ] Re-export scheduler types and options from the root package.
 - [ ] Document periodic job registration, scheduler pod behavior, and Redis coordination.
 - [ ] Mark this plan complete.
