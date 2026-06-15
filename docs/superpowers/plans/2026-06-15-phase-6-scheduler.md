@@ -66,7 +66,7 @@
 - Create: `scheduler/options_test.go`
 
 - [x] Add scheduler options for identity, poll interval, batch size, lock TTL, default queue, codec, and clock.
-- [ ] Register periodic tasks through the backend with deterministic first-run state.
+- [x] Register periodic tasks through the backend with deterministic first-run state.
 - [ ] Poll due definitions, dispatch task instances through producer, and mark only successful dispatches.
 - [ ] Stop cleanly on context cancellation.
 - [ ] Verify with `go test ./scheduler`.
