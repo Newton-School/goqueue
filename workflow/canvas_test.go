@@ -89,6 +89,8 @@ func TestCanvasApplyChainStoresChainBeforeDispatch(t *testing.T) {
 	}
 	first := validSignature()
 	first.Queue = ""
+	first.Metadata[MetadataKindKey] = "user"
+	first.Metadata[MetadataChainStepKey] = "99"
 	second := validSignature()
 	second.Name = "email.audit"
 	second.Queue = ""
@@ -122,6 +124,9 @@ func TestCanvasApplyChainStoresChainBeforeDispatch(t *testing.T) {
 	}
 	if message.Metadata[MetadataChainStepKey] != "0" {
 		t.Fatalf("chain step metadata = %q, want 0", message.Metadata[MetadataChainStepKey])
+	}
+	if message.Metadata["source"] != "workflow" {
+		t.Fatalf("source metadata = %q, want workflow", message.Metadata["source"])
 	}
 }
 
