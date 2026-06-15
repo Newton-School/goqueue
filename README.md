@@ -5,10 +5,11 @@ Celery-style developer experience for Go: named tasks, queue routing, immediate
 execution, scheduled execution, retries, workers, periodic jobs, and workflow
 primitives such as groups and chains.
 
-This repository has completed Phase 5 reliability hardening. The public surface
+This repository has completed Phase 6 scheduler and periodic jobs. The public surface
 now includes task identity primitives, producer APIs, Redis backend storage, and
 a production-grade worker runtime with acknowledgements, retries, dead-letter
-queues, pending recovery, and task state/result persistence.
+queues, pending recovery, task state/result persistence, and Redis-coordinated
+periodic task dispatch.
 
 ## Installation
 
@@ -205,8 +206,10 @@ suite.
 │   Producer API for enqueuing immediate and scheduled tasks.
 ├── worker/
 │   Worker runtime for consuming and executing task messages.
+├── scheduler/
+│   Periodic task definitions, scheduler runtime, and dispatch coordination.
 ├── redisbackend/
-│   Redis Streams, sorted sets, Lua scripts, task state, and result storage.
+│   Redis Streams, sorted sets, Lua scripts, scheduler leases, task state, and result storage.
 ├── docs/superpowers/plans/
 │   Phase implementation plans and acceptance checklists.
 ├── docs/reliability/
