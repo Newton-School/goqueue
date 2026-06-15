@@ -83,6 +83,69 @@ func TestUpsertPeriodicTaskRequestValidateUsesRecordValidation(t *testing.T) {
 	}
 }
 
+func TestListDuePeriodicTasksRequestValidateAcceptsCompleteRequest(t *testing.T) {
+	request := ListDuePeriodicTasksRequest{
+		Now:         time.Date(2026, time.June, 15, 10, 0, 0, 0, time.UTC),
+		Limit:       10,
+		SchedulerID: "scheduler-1",
+		LockTTL:     time.Minute,
+	}
+
+	if err := request.Validate(); err != nil {
+		t.Fatalf("Validate returned error: %v", err)
+	}
+}
+
+func TestListDuePeriodicTasksRequestValidateRequiresNow(t *testing.T) {
+	request := ListDuePeriodicTasksRequest{
+		Limit:       10,
+		SchedulerID: "scheduler-1",
+		LockTTL:     time.Minute,
+	}
+
+	if err := request.Validate(); !errors.Is(err, ErrInvalidBackendRequest) {
+		t.Fatalf("Validate error = %v, want ErrInvalidBackendRequest", err)
+	}
+}
+
+func TestListDuePeriodicTasksRequestValidateRequiresPositiveLimit(t *testing.T) {
+	request := ListDuePeriodicTasksRequest{
+		Now:         time.Date(2026, time.June, 15, 10, 0, 0, 0, time.UTC),
+		Limit:       0,
+		SchedulerID: "scheduler-1",
+		LockTTL:     time.Minute,
+	}
+
+	if err := request.Validate(); !errors.Is(err, ErrInvalidBackendRequest) {
+		t.Fatalf("Validate error = %v, want ErrInvalidBackendRequest", err)
+	}
+}
+
+func TestListDuePeriodicTasksRequestValidateRequiresSchedulerID(t *testing.T) {
+	request := ListDuePeriodicTasksRequest{
+		Now:     time.Date(2026, time.June, 15, 10, 0, 0, 0, time.UTC),
+		Limit:   10,
+		LockTTL: time.Minute,
+	}
+
+	if err := request.Validate(); !errors.Is(err, ErrInvalidBackendRequest) {
+		t.Fatalf("Validate error = %v, want ErrInvalidBackendRequest", err)
+	}
+}
+
+func TestListDuePeriodicTasksRequestValidateRequiresPositiveLockTTL(t *testing.T) {
+	request := ListDuePeriodicTasksRequest{
+		Now:         time.Date(2026, time.June, 15, 10, 0, 0, 0, time.UTC),
+		Limit:       10,
+		SchedulerID: "scheduler-1",
+		LockTTL:     0,
+	}
+
+	if err := request.Validate(); !errors.Is(err, ErrInvalidBackendRequest) {
+		t.Fatalf("Validate error = %v, want ErrInvalidBackendRequest", err)
+	}
+}
+
 func validPeriodicTaskRecord() PeriodicTaskRecord {
 	return PeriodicTaskRecord{
 		Name:         "welcome-email",

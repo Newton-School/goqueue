@@ -34,9 +34,35 @@ type UpsertPeriodicTaskRequest struct {
 	Record PeriodicTaskRecord
 }
 
+// ListDuePeriodicTasksRequest leases due periodic definitions for a scheduler.
+type ListDuePeriodicTasksRequest struct {
+	Now         time.Time
+	Limit       int64
+	SchedulerID string
+	LockTTL     time.Duration
+}
+
 // Validate verifies that the upsert request contains a complete record.
 func (r UpsertPeriodicTaskRequest) Validate() error {
 	return r.Record.Validate()
+}
+
+// Validate verifies that due periodic scans can be bounded and leased.
+func (r ListDuePeriodicTasksRequest) Validate() error {
+	if r.Now.IsZero() {
+		return fmt.Errorf("%w: scan time is required", ErrInvalidBackendRequest)
+	}
+	if r.Limit <= 0 {
+		return fmt.Errorf("%w: due scan limit must be positive", ErrInvalidBackendRequest)
+	}
+	if r.SchedulerID == "" {
+		return fmt.Errorf("%w: scheduler id is required", ErrInvalidBackendRequest)
+	}
+	if r.LockTTL <= 0 {
+		return fmt.Errorf("%w: lock ttl must be positive", ErrInvalidBackendRequest)
+	}
+
+	return nil
 }
 
 // Validate verifies that a periodic task record is safe for backend storage.
