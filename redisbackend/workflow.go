@@ -83,7 +83,33 @@ func (b *Backend) SaveWorkflowGroup(ctx context.Context, record backend.Workflow
 		return err
 	}
 
-	return fmt.Errorf("%w: workflow group save not implemented", ErrInvalidRedisMessage)
+	metaKey := b.keys.workflowGroupMeta(record.ID)
+	completedKey := b.keys.workflowGroupCompleted(record.ID)
+	callbackKey := b.keys.workflowGroupCallback(record.ID)
+	ttl := b.options.MessageTTL
+	pipe := b.client.TxPipeline()
+	pipe.HSet(ctx, metaKey, map[string]any{
+		"total":               len(record.TaskIDs),
+		"completed":           0,
+		"failed":              0,
+		"callback_dispatched": 0,
+		"created_at":          record.CreatedAt.UTC().Format(time.RFC3339Nano),
+	})
+	if record.Callback != nil {
+		encoded, err := (workflowSignatureCodec{}).encode(*record.Callback)
+		if err != nil {
+			return err
+		}
+		pipe.Set(ctx, callbackKey, string(encoded), ttl)
+	} else {
+		pipe.Del(ctx, callbackKey)
+	}
+	pipe.Del(ctx, completedKey)
+	pipe.Expire(ctx, metaKey, ttl)
+	pipe.Expire(ctx, completedKey, ttl)
+
+	_, err := pipe.Exec(ctx)
+	return err
 }
 
 // RecordWorkflowTaskCompleted records terminal progress for a group child.
