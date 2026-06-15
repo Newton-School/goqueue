@@ -1081,6 +1081,104 @@ func TestWorkerRecordsGroupProgressAfterTerminalTask(t *testing.T) {
 	}
 }
 
+func TestWorkerDispatchesChordCallbackWhenGroupCompletes(t *testing.T) {
+	registry := task.NewTaskRegistry()
+	if err := registry.Register("email.send", task.TaskHandlerFunc(func(_ task.HandlerContext, _ task.TaskPayload) (task.TaskResult, error) {
+		return task.SucceededResult("done"), nil
+	})); err != nil {
+		t.Fatalf("Register returned error: %v", err)
+	}
+
+	now := time.Date(2026, time.June, 15, 9, 0, 0, 0, time.UTC)
+	message := readyMessage(t, task.JSONPayloadCodec{}, testEnvelopeInput{
+		name:      "email.send",
+		queue:     "billing",
+		createdAt: now,
+		metadata: map[string]string{
+			"goqueue.workflow.kind":     "chord",
+			"goqueue.workflow.group_id": "group-1",
+			"goqueue.workflow.chord_id": "group-1",
+		},
+	})
+	callback := backend.WorkflowSignatureRecord{
+		Name:        "email.complete",
+		Queue:       "billing",
+		Priority:    task.DefaultPriority,
+		RetryPolicy: task.DefaultRetryPolicy(),
+	}
+	ackCh := make(chan struct{}, 1)
+	fake := &fakeBackend{
+		readReadyFn: makeReadOnce(message),
+		recordGroupResponse: backend.WorkflowGroupProgress{
+			GroupID:   "group-1",
+			Total:     1,
+			Completed: 1,
+			Done:      true,
+			Succeeded: true,
+			Callback:  &callback,
+		},
+		ackFn: func(_ context.Context, _ backend.AckRequest) error {
+			select {
+			case ackCh <- struct{}{}:
+			default:
+			}
+			return nil
+		},
+		moveDueFn: func(_ context.Context, _ backend.MoveDueScheduledRequest) ([]backend.MovedScheduledMessage, error) {
+			return nil, nil
+		},
+	}
+
+	worker, err := NewWorker(
+		fake,
+		registry,
+		WithWorkerGroup("workers"),
+		WithWorkerConsumer("pod-1"),
+		WithWorkerReadBatch(1),
+		WithWorkerBlock(0),
+		WithWorkerIdleDelay(1*time.Millisecond),
+		WithWorkerNow(func() time.Time { return now }),
+		WithWorkerMoveDueEnabled(false),
+		WithWorkerQueue("billing"),
+	)
+	if err != nil {
+		t.Fatalf("NewWorker returned error: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- worker.Start(ctx)
+	}()
+
+	select {
+	case <-ackCh:
+	case <-time.After(2 * time.Second):
+		t.Fatal("task was not acknowledged")
+	}
+	cancel()
+
+	select {
+	case gotErr := <-errCh:
+		if gotErr != nil {
+			t.Fatalf("Start returned error: %v", gotErr)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("Start did not return")
+	}
+
+	if len(fake.enqueueReadyRequests) != 1 {
+		t.Fatalf("enqueue ready calls = %d, want 1", len(fake.enqueueReadyRequests))
+	}
+	callbackMessage := fake.enqueueReadyRequests[0].Message
+	if callbackMessage.Name != "email.complete" {
+		t.Fatalf("callback name = %q, want email.complete", callbackMessage.Name)
+	}
+	if callbackMessage.Metadata["goqueue.workflow.chord_callback"] != "true" {
+		t.Fatalf("callback metadata = %q, want true", callbackMessage.Metadata["goqueue.workflow.chord_callback"])
+	}
+}
+
 type fakeBackend struct {
 	mu                       sync.Mutex
 	ensureGroupRequests      []backend.ConsumerGroupRequest
