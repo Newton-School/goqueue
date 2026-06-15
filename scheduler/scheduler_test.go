@@ -116,14 +116,88 @@ func TestSchedulerDeletePeriodicTaskDeletesBackendRecord(t *testing.T) {
 	}
 }
 
-type fakeBackend struct {
-	mu             sync.Mutex
-	upsertRequests []backend.UpsertPeriodicTaskRequest
-	deleteRequests []backend.DeletePeriodicTaskRequest
+func TestSchedulerPollOnceDispatchesDuePeriodicTask(t *testing.T) {
+	now := time.Date(2026, time.June, 15, 10, 0, 0, 0, time.UTC)
+	record, err := validPeriodicTask().toBackendRecord("default", now.Add(-10*time.Minute))
+	if err != nil {
+		t.Fatalf("toBackendRecord returned error: %v", err)
+	}
+	record.NextDueAt = now
+
+	backend := &fakeBackend{
+		dueTasks: []backend.DuePeriodicTask{{
+			Record:      record,
+			LockToken:   "lock-token",
+			LockedUntil: now.Add(time.Minute),
+		}},
+	}
+	scheduler, err := NewScheduler(
+		backend,
+		WithSchedulerIdentity("scheduler-1"),
+		WithSchedulerNow(func() time.Time { return now }),
+	)
+	if err != nil {
+		t.Fatalf("NewScheduler returned error: %v", err)
+	}
+
+	dispatched, err := scheduler.PollOnce(context.Background())
+	if err != nil {
+		t.Fatalf("PollOnce returned error: %v", err)
+	}
+
+	if dispatched != 1 {
+		t.Fatalf("dispatched = %d, want 1", dispatched)
+	}
+	if len(backend.listDueRequests) != 1 {
+		t.Fatalf("due scan calls = %d, want 1", len(backend.listDueRequests))
+	}
+	scan := backend.listDueRequests[0]
+	if scan.SchedulerID != "scheduler-1" {
+		t.Fatalf("scheduler id = %q, want scheduler-1", scan.SchedulerID)
+	}
+	if len(backend.enqueueReadyRequests) != 1 {
+		t.Fatalf("enqueue ready calls = %d, want 1", len(backend.enqueueReadyRequests))
+	}
+	enqueued := backend.enqueueReadyRequests[0].Message
+	if enqueued.Name != record.TaskName.String() {
+		t.Fatalf("enqueued name = %q, want %q", enqueued.Name, record.TaskName)
+	}
+	if enqueued.Queue != record.Queue.String() {
+		t.Fatalf("enqueued queue = %q, want %q", enqueued.Queue, record.Queue)
+	}
+	if len(backend.markRequests) != 1 {
+		t.Fatalf("mark calls = %d, want 1", len(backend.markRequests))
+	}
+	mark := backend.markRequests[0]
+	if mark.Name != record.Name {
+		t.Fatalf("mark name = %q, want %q", mark.Name, record.Name)
+	}
+	if mark.LockToken != "lock-token" {
+		t.Fatalf("lock token = %q, want lock-token", mark.LockToken)
+	}
+	if mark.DispatchedTaskID.String() != enqueued.ID {
+		t.Fatalf("dispatched task id = %q, want %q", mark.DispatchedTaskID, enqueued.ID)
+	}
+	if !mark.NextDueAt.Equal(now.Add(10 * time.Minute)) {
+		t.Fatalf("next due = %v, want %v", mark.NextDueAt, now.Add(10*time.Minute))
+	}
 }
 
-func (f *fakeBackend) EnqueueReady(context.Context, backend.EnqueueRequest) (backend.EnqueueResponse, error) {
-	return backend.EnqueueResponse{}, nil
+type fakeBackend struct {
+	mu                   sync.Mutex
+	upsertRequests       []backend.UpsertPeriodicTaskRequest
+	deleteRequests       []backend.DeletePeriodicTaskRequest
+	listDueRequests      []backend.ListDuePeriodicTasksRequest
+	markRequests         []backend.MarkPeriodicTaskDispatchedRequest
+	enqueueReadyRequests []backend.EnqueueRequest
+	dueTasks             []backend.DuePeriodicTask
+}
+
+func (f *fakeBackend) EnqueueReady(_ context.Context, request backend.EnqueueRequest) (backend.EnqueueResponse, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.enqueueReadyRequests = append(f.enqueueReadyRequests, request)
+	return backend.EnqueueResponse{TaskID: task.TaskID(request.Message.ID), StreamID: "1-0"}, nil
 }
 func (f *fakeBackend) EnqueueScheduled(context.Context, backend.EnqueueRequest) (backend.EnqueueResponse, error) {
 	return backend.EnqueueResponse{}, nil
@@ -159,10 +233,16 @@ func (f *fakeBackend) DeletePeriodicTask(_ context.Context, request backend.Dele
 	f.deleteRequests = append(f.deleteRequests, request)
 	return nil
 }
-func (f *fakeBackend) ListDuePeriodicTasks(context.Context, backend.ListDuePeriodicTasksRequest) ([]backend.DuePeriodicTask, error) {
-	return nil, nil
+func (f *fakeBackend) ListDuePeriodicTasks(_ context.Context, request backend.ListDuePeriodicTasksRequest) ([]backend.DuePeriodicTask, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.listDueRequests = append(f.listDueRequests, request)
+	return append([]backend.DuePeriodicTask(nil), f.dueTasks...), nil
 }
-func (f *fakeBackend) MarkPeriodicTaskDispatched(context.Context, backend.MarkPeriodicTaskDispatchedRequest) error {
+func (f *fakeBackend) MarkPeriodicTaskDispatched(_ context.Context, request backend.MarkPeriodicTaskDispatchedRequest) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.markRequests = append(f.markRequests, request)
 	return nil
 }
 func (f *fakeBackend) SetTaskState(context.Context, backend.TaskStateRecord) error {

@@ -93,6 +93,65 @@ func (s *Scheduler) DeletePeriodicTask(ctx context.Context, name PeriodicTaskNam
 	return s.backend.DeletePeriodicTask(ctx, backend.DeletePeriodicTaskRequest{Name: name.String()})
 }
 
+// PollOnce leases due periodic tasks, dispatches them, and advances their schedules.
+func (s *Scheduler) PollOnce(ctx context.Context) (int, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	now := s.now().UTC()
+	dueTasks, err := s.backend.ListDuePeriodicTasks(ctx, backend.ListDuePeriodicTasksRequest{
+		Now:         now,
+		Limit:       s.batchSize,
+		SchedulerID: s.identity,
+		LockTTL:     s.lockTTL,
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	dispatched := 0
+	for _, due := range dueTasks {
+		if err := due.Validate(); err != nil {
+			return dispatched, err
+		}
+
+		definition, err := periodicTaskFromBackendRecord(due.Record)
+		if err != nil {
+			return dispatched, err
+		}
+
+		result, err := s.producer.ApplyAsync(
+			ctx,
+			definition.TaskName,
+			copyAnySlice(definition.Args),
+			copyAnyMap(definition.Kwargs),
+			producer.WithApplyQueue(definition.Queue),
+			producer.WithApplyMetadata(copyStringMap(definition.Metadata)),
+			producer.WithApplyPriority(definition.Priority),
+			producer.WithApplyRetryPolicy(definition.RetryPolicy),
+			producer.WithApplyCreatedAt(now),
+		)
+		if err != nil {
+			return dispatched, err
+		}
+
+		if err := s.backend.MarkPeriodicTaskDispatched(ctx, backend.MarkPeriodicTaskDispatchedRequest{
+			Name:             due.Record.Name,
+			LockToken:        due.LockToken,
+			DispatchedTaskID: result.ID(),
+			DispatchedAt:     now,
+			NextDueAt:        definition.NextDueAfter(now),
+		}); err != nil {
+			return dispatched, err
+		}
+
+		dispatched++
+	}
+
+	return dispatched, nil
+}
+
 func newSchedulerIdentity() (string, error) {
 	var bytes [8]byte
 	if _, err := rand.Read(bytes[:]); err != nil {
