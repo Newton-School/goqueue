@@ -66,7 +66,7 @@
 - Create: `workflow/result.go`
 - Create canvas tests.
 
-- [ ] Add `Canvas` with default queue, codec, and clock options.
+- [x] Add `Canvas` with default queue, codec, and clock options.
 - [ ] Add `ApplySignature`, `ApplyChain`, `ApplyGroup`, and `ApplyChord`.
 - [ ] Persist workflow state before dispatching workflow task instances.
 - [ ] Add workflow metadata to dispatched task instances.
