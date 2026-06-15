@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Newton-School/goqueue/backend"
+	"github.com/redis/go-redis/v9"
 )
 
 // SaveWorkflowChain stores a chain workflow definition.
@@ -55,7 +56,22 @@ func (b *Backend) AdvanceWorkflowChain(ctx context.Context, request backend.Adva
 		return backend.AdvanceWorkflowChainResponse{}, err
 	}
 
-	return backend.AdvanceWorkflowChainResponse{}, fmt.Errorf("%w: workflow chain advance not implemented", ErrInvalidRedisMessage)
+	values, err := redis.NewScript(advanceWorkflowChainScript()).Run(
+		ctx,
+		b.client,
+		[]string{
+			b.keys.workflowChainMeta(request.WorkflowID),
+			b.keys.workflowChainSignatures(request.WorkflowID),
+		},
+		request.CompletedIndex,
+		request.CompletedTaskID.String(),
+		request.CompletedAt.UTC().Format(time.RFC3339Nano),
+	).Slice()
+	if err != nil {
+		return backend.AdvanceWorkflowChainResponse{}, err
+	}
+
+	return parseAdvanceWorkflowChainResponse(values)
 }
 
 // SaveWorkflowGroup stores a group or chord header workflow definition.
