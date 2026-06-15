@@ -84,7 +84,7 @@
 
 - [x] Add `App.NewScheduler` with app defaults.
 - [x] Re-export scheduler types and options from the root package.
-- [ ] Document periodic job registration, scheduler pod behavior, and Redis coordination.
+- [x] Document periodic job registration, scheduler pod behavior, and Redis coordination.
 - [ ] Mark this plan complete.
 - [ ] Verify with `go test ./...` and `go vet ./...`.
 - [ ] Commit final docs and verification.
