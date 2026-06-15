@@ -12,6 +12,8 @@ import (
 	"github.com/Newton-School/goqueue/task"
 )
 
+var errSchedulerTest = errors.New("scheduler test error")
+
 func TestNewSchedulerRequiresBackend(t *testing.T) {
 	_, err := NewScheduler(nil)
 	if !errors.Is(err, ErrNilBackend) {
@@ -183,6 +185,43 @@ func TestSchedulerPollOnceDispatchesDuePeriodicTask(t *testing.T) {
 	}
 }
 
+func TestSchedulerPollOnceDoesNotMarkWhenDispatchFails(t *testing.T) {
+	now := time.Date(2026, time.June, 15, 10, 0, 0, 0, time.UTC)
+	record, err := validPeriodicTask().toBackendRecord("default", now.Add(-10*time.Minute))
+	if err != nil {
+		t.Fatalf("toBackendRecord returned error: %v", err)
+	}
+	record.NextDueAt = now
+
+	backend := &fakeBackend{
+		enqueueReadyErr: errSchedulerTest,
+		dueTasks: []backend.DuePeriodicTask{{
+			Record:      record,
+			LockToken:   "lock-token",
+			LockedUntil: now.Add(time.Minute),
+		}},
+	}
+	scheduler, err := NewScheduler(
+		backend,
+		WithSchedulerIdentity("scheduler-1"),
+		WithSchedulerNow(func() time.Time { return now }),
+	)
+	if err != nil {
+		t.Fatalf("NewScheduler returned error: %v", err)
+	}
+
+	dispatched, err := scheduler.PollOnce(context.Background())
+	if !errors.Is(err, errSchedulerTest) {
+		t.Fatalf("PollOnce error = %v, want errSchedulerTest", err)
+	}
+	if dispatched != 0 {
+		t.Fatalf("dispatched = %d, want 0", dispatched)
+	}
+	if len(backend.markRequests) != 0 {
+		t.Fatalf("mark calls = %d, want 0", len(backend.markRequests))
+	}
+}
+
 type fakeBackend struct {
 	mu                   sync.Mutex
 	upsertRequests       []backend.UpsertPeriodicTaskRequest
@@ -191,12 +230,16 @@ type fakeBackend struct {
 	markRequests         []backend.MarkPeriodicTaskDispatchedRequest
 	enqueueReadyRequests []backend.EnqueueRequest
 	dueTasks             []backend.DuePeriodicTask
+	enqueueReadyErr      error
 }
 
 func (f *fakeBackend) EnqueueReady(_ context.Context, request backend.EnqueueRequest) (backend.EnqueueResponse, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.enqueueReadyRequests = append(f.enqueueReadyRequests, request)
+	if f.enqueueReadyErr != nil {
+		return backend.EnqueueResponse{}, f.enqueueReadyErr
+	}
 	return backend.EnqueueResponse{TaskID: task.TaskID(request.Message.ID), StreamID: "1-0"}, nil
 }
 func (f *fakeBackend) EnqueueScheduled(context.Context, backend.EnqueueRequest) (backend.EnqueueResponse, error) {
