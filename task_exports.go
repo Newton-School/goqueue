@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Newton-School/goqueue/producer"
+	"github.com/Newton-School/goqueue/scheduler"
 	"github.com/Newton-School/goqueue/task"
 	"github.com/Newton-School/goqueue/worker"
 )
@@ -54,6 +55,11 @@ type (
 	ApplyOption       = producer.ApplyOption
 	ProducerOption    = producer.ProducerOption
 	AsyncResult       = producer.AsyncResult
+	Scheduler         = scheduler.Scheduler
+	SchedulerOption   = scheduler.SchedulerOption
+	PeriodicTask      = scheduler.PeriodicTask
+	PeriodicTaskName  = scheduler.PeriodicTaskName
+	IntervalSchedule  = scheduler.IntervalSchedule
 	Worker            = worker.Worker
 	WorkerOption      = worker.WorkerOption
 )
@@ -74,7 +80,16 @@ var (
 	ErrNilTaskRegistry     = worker.ErrNilTaskRegistry
 	ErrMissingTaskName     = producer.ErrMissingTaskName
 	ErrMissingApplyOption  = producer.ErrMissingApplyOption
+	ErrInvalidSchedule     = scheduler.ErrInvalidSchedule
+	ErrInvalidPeriodicTask = scheduler.ErrInvalidPeriodicTask
+	ErrNilSchedulerBackend = scheduler.ErrNilBackend
 	ErrInvalidWorkerOption = worker.ErrInvalidWorkerOption
+)
+
+const (
+	ScheduleKindInterval     = scheduler.ScheduleKindInterval
+	PeriodicMetadataNameKey  = scheduler.PeriodicMetadataNameKey
+	PeriodicMetadataDueAtKey = scheduler.PeriodicMetadataDueAtKey
 )
 
 const (
@@ -199,6 +214,38 @@ func WithApplyAttempt(attempt int) ApplyOption {
 
 func WithApplyCreatedAt(createdAt time.Time) ApplyOption {
 	return producer.WithApplyCreatedAt(createdAt)
+}
+
+func Every(interval time.Duration) IntervalSchedule {
+	return scheduler.Every(interval)
+}
+
+func WithSchedulerIdentity(identity string) SchedulerOption {
+	return scheduler.WithSchedulerIdentity(identity)
+}
+
+func WithSchedulerDefaultQueue(queue QueueName) SchedulerOption {
+	return scheduler.WithSchedulerDefaultQueue(queue)
+}
+
+func WithSchedulerPollInterval(interval time.Duration) SchedulerOption {
+	return scheduler.WithSchedulerPollInterval(interval)
+}
+
+func WithSchedulerBatchSize(size int64) SchedulerOption {
+	return scheduler.WithSchedulerBatchSize(size)
+}
+
+func WithSchedulerLockTTL(ttl time.Duration) SchedulerOption {
+	return scheduler.WithSchedulerLockTTL(ttl)
+}
+
+func WithSchedulerCodec(codec PayloadCodec) SchedulerOption {
+	return scheduler.WithSchedulerCodec(codec)
+}
+
+func WithSchedulerNow(now func() time.Time) SchedulerOption {
+	return scheduler.WithSchedulerNow(now)
 }
 
 func WithWorkerQueue(queue QueueName) WorkerOption {
