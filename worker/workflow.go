@@ -58,7 +58,39 @@ func (w *Worker) advanceChain(ctx context.Context, envelope task.TaskEnvelope) e
 }
 
 func (w *Worker) recordGroupProgress(ctx context.Context, envelope task.TaskEnvelope, finalState task.TaskState) error {
-	return nil
+	metadata := envelope.Metadata.Values()
+	kind := metadata[workflow.MetadataKindKey]
+	if kind != workflow.WorkflowKindGroup && kind != workflow.WorkflowKindChord {
+		return nil
+	}
+
+	groupID := metadata[workflow.MetadataGroupIDKey]
+	if groupID == "" {
+		groupID = metadata[workflow.MetadataChordIDKey]
+	}
+	if groupID == "" {
+		return nil
+	}
+
+	progress, err := w.backend.RecordWorkflowTaskCompleted(ctx, backend.RecordWorkflowTaskCompletedRequest{
+		GroupID:     groupID,
+		TaskID:      envelope.ID,
+		State:       finalState,
+		CompletedAt: w.now(),
+	})
+	if err != nil {
+		return fmt.Errorf("goqueue worker: record group workflow progress: %w", err)
+	}
+	if progress.Callback == nil {
+		return nil
+	}
+
+	return w.enqueueWorkflowSignature(ctx, *progress.Callback, map[string]string{
+		workflow.MetadataKindKey:          workflow.WorkflowKindChord,
+		workflow.MetadataGroupIDKey:       groupID,
+		workflow.MetadataChordIDKey:       groupID,
+		workflow.MetadataChordCallbackKey: "true",
+	})
 }
 
 func (w *Worker) enqueueWorkflowSignature(

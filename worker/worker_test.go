@@ -999,6 +999,88 @@ func TestWorkerAdvancesChainAfterSuccessfulTask(t *testing.T) {
 	}
 }
 
+func TestWorkerRecordsGroupProgressAfterTerminalTask(t *testing.T) {
+	registry := task.NewTaskRegistry()
+	if err := registry.Register("email.send", task.TaskHandlerFunc(func(_ task.HandlerContext, _ task.TaskPayload) (task.TaskResult, error) {
+		return task.SucceededResult("done"), nil
+	})); err != nil {
+		t.Fatalf("Register returned error: %v", err)
+	}
+
+	now := time.Date(2026, time.June, 15, 9, 0, 0, 0, time.UTC)
+	message := readyMessage(t, task.JSONPayloadCodec{}, testEnvelopeInput{
+		name:      "email.send",
+		queue:     "billing",
+		createdAt: now,
+		metadata: map[string]string{
+			"goqueue.workflow.kind":     "group",
+			"goqueue.workflow.group_id": "group-1",
+		},
+	})
+	ackCh := make(chan struct{}, 1)
+	fake := &fakeBackend{
+		readReadyFn: makeReadOnce(message),
+		ackFn: func(_ context.Context, _ backend.AckRequest) error {
+			select {
+			case ackCh <- struct{}{}:
+			default:
+			}
+			return nil
+		},
+		moveDueFn: func(_ context.Context, _ backend.MoveDueScheduledRequest) ([]backend.MovedScheduledMessage, error) {
+			return nil, nil
+		},
+	}
+
+	worker, err := NewWorker(
+		fake,
+		registry,
+		WithWorkerGroup("workers"),
+		WithWorkerConsumer("pod-1"),
+		WithWorkerReadBatch(1),
+		WithWorkerBlock(0),
+		WithWorkerIdleDelay(1*time.Millisecond),
+		WithWorkerNow(func() time.Time { return now }),
+		WithWorkerMoveDueEnabled(false),
+		WithWorkerQueue("billing"),
+	)
+	if err != nil {
+		t.Fatalf("NewWorker returned error: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- worker.Start(ctx)
+	}()
+
+	select {
+	case <-ackCh:
+	case <-time.After(2 * time.Second):
+		t.Fatal("task was not acknowledged")
+	}
+	cancel()
+
+	select {
+	case gotErr := <-errCh:
+		if gotErr != nil {
+			t.Fatalf("Start returned error: %v", gotErr)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("Start did not return")
+	}
+
+	if len(fake.recordGroupRequests) != 1 {
+		t.Fatalf("record group calls = %d, want 1", len(fake.recordGroupRequests))
+	}
+	if fake.recordGroupRequests[0].GroupID != "group-1" {
+		t.Fatalf("group id = %q, want group-1", fake.recordGroupRequests[0].GroupID)
+	}
+	if fake.recordGroupRequests[0].State != task.TaskSucceeded {
+		t.Fatalf("state = %q, want succeeded", fake.recordGroupRequests[0].State)
+	}
+}
+
 type fakeBackend struct {
 	mu                       sync.Mutex
 	ensureGroupRequests      []backend.ConsumerGroupRequest
