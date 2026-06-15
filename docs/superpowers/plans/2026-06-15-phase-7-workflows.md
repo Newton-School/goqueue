@@ -101,7 +101,7 @@
 - [x] Add `App.NewCanvas` with app defaults.
 - [x] Re-export workflow types, results, options, and metadata constants.
 - [x] Document signature, chain, group, and chord usage.
-- [ ] Document Redis workflow state and idempotency behavior.
+- [x] Document Redis workflow state and idempotency behavior.
 - [ ] Verify with `go test ./...` and `go vet ./...`.
 - [ ] Phase 7 creates exactly 100 commits from the pre-phase baseline.
 
