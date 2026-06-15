@@ -130,7 +130,7 @@ func (s *Scheduler) PollOnce(ctx context.Context) (int, error) {
 			producer.WithApplyMetadata(periodicDispatchMetadata(
 				definition.Metadata,
 				due.Record.Name,
-				now.Format(time.RFC3339Nano),
+				due.Record.NextDueAt.UTC().Format(time.RFC3339Nano),
 			)),
 			producer.WithApplyPriority(definition.Priority),
 			producer.WithApplyRetryPolicy(definition.RetryPolicy),

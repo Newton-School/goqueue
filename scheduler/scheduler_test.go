@@ -124,7 +124,8 @@ func TestSchedulerPollOnceDispatchesDuePeriodicTask(t *testing.T) {
 	if err != nil {
 		t.Fatalf("toBackendRecord returned error: %v", err)
 	}
-	record.NextDueAt = now
+	dueAt := now.Add(-30 * time.Second)
+	record.NextDueAt = dueAt
 
 	backend := &fakeBackend{
 		dueTasks: []backend.DuePeriodicTask{{
@@ -170,8 +171,8 @@ func TestSchedulerPollOnceDispatchesDuePeriodicTask(t *testing.T) {
 	if enqueued.Metadata[PeriodicMetadataNameKey] != record.Name {
 		t.Fatalf("periodic metadata name = %q, want %q", enqueued.Metadata[PeriodicMetadataNameKey], record.Name)
 	}
-	if enqueued.Metadata[PeriodicMetadataDueAtKey] != now.Format(time.RFC3339Nano) {
-		t.Fatalf("periodic metadata due at = %q, want %q", enqueued.Metadata[PeriodicMetadataDueAtKey], now.Format(time.RFC3339Nano))
+	if enqueued.Metadata[PeriodicMetadataDueAtKey] != dueAt.Format(time.RFC3339Nano) {
+		t.Fatalf("periodic metadata due at = %q, want %q", enqueued.Metadata[PeriodicMetadataDueAtKey], dueAt.Format(time.RFC3339Nano))
 	}
 	if len(backend.markRequests) != 1 {
 		t.Fatalf("mark calls = %d, want 1", len(backend.markRequests))
