@@ -10,6 +10,9 @@ var (
 	// ErrTaskMessageNotFound is returned when a persisted task message is missing.
 	ErrTaskMessageNotFound = errors.New("goqueue backend: task message not found")
 
+	// ErrDeadLetterNotFound is returned when a dead-letter record is missing.
+	ErrDeadLetterNotFound = errors.New("goqueue backend: dead-letter record not found")
+
 	// ErrTaskStateNotFound is returned when task state has not been written.
 	ErrTaskStateNotFound = errors.New("goqueue backend: task state not found")
 

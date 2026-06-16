@@ -155,6 +155,21 @@ func TestAppNewInspectorUsesConfigDefaults(t *testing.T) {
 	}
 }
 
+func TestAppNewAdminUsesConfigDefaults(t *testing.T) {
+	app, err := New(WithRedisURL("redis://localhost:6379/0"), WithDefaultQueue("billing"))
+	if err != nil {
+		t.Fatalf("New returned error: %v", err)
+	}
+
+	admin, err := app.NewAdmin()
+	if err != nil {
+		t.Fatalf("NewAdmin returned error: %v", err)
+	}
+	if admin == nil {
+		t.Fatal("NewAdmin returned nil")
+	}
+}
+
 func TestRootSchedulerExportsCompile(t *testing.T) {
 	definition := PeriodicTask{
 		Name:     PeriodicTaskName("welcome-email"),

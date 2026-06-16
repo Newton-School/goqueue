@@ -53,6 +53,46 @@ func TestPrintJSONProducesMachineFormat(t *testing.T) {
 	}
 }
 
+func TestSplitStreamIDsParsesCommaSeparatedValues(t *testing.T) {
+	ids, err := splitStreamIDs("1-0,2-0, 3-0")
+	if err != nil {
+		t.Fatalf("splitStreamIDs returned error: %v", err)
+	}
+
+	got := strings.Join(ids, ",")
+	if got != "1-0,2-0,3-0" {
+		t.Fatalf("splitStreamIDs got=%q want=%q", got, "1-0,2-0,3-0")
+	}
+}
+
+func TestSplitStreamIDsReturnsNilForEmptyValue(t *testing.T) {
+	ids, err := splitStreamIDs("")
+	if err != nil {
+		t.Fatalf("splitStreamIDs returned error: %v", err)
+	}
+	if ids != nil {
+		t.Fatalf("splitStreamIDs result = %v, want nil", ids)
+	}
+}
+
+func TestPrintUsageIncludesControlCommand(t *testing.T) {
+	output := captureStdout(t, func() {
+		printUsage()
+	})
+	if !strings.Contains(output, "goqueue control") {
+		t.Fatalf("printUsage output = %q, missing control command", output)
+	}
+}
+
+func TestPrintControlUsageIncludesReplayCommand(t *testing.T) {
+	output := captureStdout(t, func() {
+		printControlUsage()
+	})
+	if !strings.Contains(output, "replay-dead-letter") {
+		t.Fatalf("printControlUsage output = %q, missing replay-dead-letter", output)
+	}
+}
+
 func TestCtxReturnsContext(t *testing.T) {
 	ctx := ctx()
 	if ctx == nil {

@@ -1,6 +1,6 @@
 # goqueue CLI
 
-`goqueue` exposes a read-only CLI for inspection and operations.
+`goqueue` exposes a CLI for inspection and control operations.
 
 ## Install
 
@@ -19,6 +19,11 @@ go install ./cmd/goqueue
 - `goqueue inspect forget-result --id <task-id>`
 - `goqueue inspect deadletters --queue <queue> [--count <n>] [--json]`
 - `goqueue inspect stats --queue <queue> [--json]`
+- `goqueue control retry-task --id <task-id> [--queue <queue>] [--scheduled-at <RFC3339>] [--countdown <duration>] [--preserve-attempt] [--clear-state] [--clear-result] [--json]`
+- `goqueue control revoke-task --id <task-id> [--reason <text>]`
+- `goqueue control replay-dead-letter --queue <queue> --stream-id <id> [--destination-queue <queue>] [--delete-source] [--json]`
+- `goqueue control delete-dead-letter --queue <queue> --stream-id <id>[,<id>...] [--json]`
+- `goqueue control purge-queue --queue <queue> [--delete-messages] [--delete-states] [--delete-results] [--json]`
 
 ## Common options
 

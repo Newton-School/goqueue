@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/Newton-School/goqueue/admin"
+	"github.com/Newton-School/goqueue/backend"
 	"github.com/Newton-School/goqueue/inspect"
 	"github.com/Newton-School/goqueue/producer"
 	"github.com/Newton-School/goqueue/scheduler"
@@ -32,80 +34,96 @@ const (
 )
 
 type (
-	TaskName          = task.TaskName
-	QueueName         = task.QueueName
-	TaskID            = task.TaskID
-	Priority          = task.Priority
-	TaskState         = task.TaskState
-	RetryPolicy       = task.RetryPolicy
-	TaskTiming        = task.TaskTiming
-	TaskPayload       = task.TaskPayload
-	TaskMetadata      = task.TaskMetadata
-	PayloadCodec      = task.PayloadCodec
-	JSONPayloadCodec  = task.JSONPayloadCodec
-	TaskEnvelope      = task.TaskEnvelope
-	TaskEnvelopeInput = task.TaskEnvelopeInput
-	TaskMessage       = task.TaskMessage
-	HandlerContext    = task.HandlerContext
-	TaskResult        = task.TaskResult
-	TaskHandler       = task.TaskHandler
-	TaskHandlerFunc   = task.TaskHandlerFunc
-	TaskRegistry      = task.TaskRegistry
-	FailureCategory   = task.FailureCategory
-	FailureMetadata   = task.FailureMetadata
-	Producer          = producer.Producer
-	ApplyOption       = producer.ApplyOption
-	ProducerOption    = producer.ProducerOption
-	AsyncResult       = producer.AsyncResult
-	Scheduler         = scheduler.Scheduler
-	SchedulerOption   = scheduler.SchedulerOption
-	PeriodicTask      = scheduler.PeriodicTask
-	PeriodicTaskName  = scheduler.PeriodicTaskName
-	IntervalSchedule  = scheduler.IntervalSchedule
-	Signature         = workflow.Signature
-	Chain             = workflow.Chain
-	Group             = workflow.Group
-	Chord             = workflow.Chord
-	Canvas            = workflow.Canvas
-	CanvasOption      = workflow.CanvasOption
-	ChainResult       = workflow.ChainResult
-	GroupResult       = workflow.GroupResult
-	ChordResult       = workflow.ChordResult
-	Inspector         = inspect.Inspector
-	TaskInspection    = inspect.TaskInspection
-	TaskInspectState  = inspect.TaskState
-	TaskInspectResult = inspect.TaskResult
-	Worker            = worker.Worker
-	WorkerOption      = worker.WorkerOption
+	TaskName                = task.TaskName
+	QueueName               = task.QueueName
+	TaskID                  = task.TaskID
+	Priority                = task.Priority
+	TaskState               = task.TaskState
+	RetryPolicy             = task.RetryPolicy
+	TaskTiming              = task.TaskTiming
+	TaskPayload             = task.TaskPayload
+	TaskMetadata            = task.TaskMetadata
+	PayloadCodec            = task.PayloadCodec
+	JSONPayloadCodec        = task.JSONPayloadCodec
+	TaskEnvelope            = task.TaskEnvelope
+	TaskEnvelopeInput       = task.TaskEnvelopeInput
+	TaskMessage             = task.TaskMessage
+	HandlerContext          = task.HandlerContext
+	TaskResult              = task.TaskResult
+	TaskHandler             = task.TaskHandler
+	TaskHandlerFunc         = task.TaskHandlerFunc
+	TaskRegistry            = task.TaskRegistry
+	FailureCategory         = task.FailureCategory
+	FailureMetadata         = task.FailureMetadata
+	Producer                = producer.Producer
+	ApplyOption             = producer.ApplyOption
+	ProducerOption          = producer.ProducerOption
+	AsyncResult             = producer.AsyncResult
+	Scheduler               = scheduler.Scheduler
+	SchedulerOption         = scheduler.SchedulerOption
+	PeriodicTask            = scheduler.PeriodicTask
+	PeriodicTaskName        = scheduler.PeriodicTaskName
+	IntervalSchedule        = scheduler.IntervalSchedule
+	Signature               = workflow.Signature
+	Chain                   = workflow.Chain
+	Group                   = workflow.Group
+	Chord                   = workflow.Chord
+	Canvas                  = workflow.Canvas
+	CanvasOption            = workflow.CanvasOption
+	ChainResult             = workflow.ChainResult
+	GroupResult             = workflow.GroupResult
+	ChordResult             = workflow.ChordResult
+	Inspector               = inspect.Inspector
+	Admin                   = admin.Admin
+	TaskInspection          = inspect.TaskInspection
+	TaskInspectState        = inspect.TaskState
+	TaskInspectResult       = inspect.TaskResult
+	RetryTaskOptions        = admin.RetryTaskOptions
+	RetryTaskResult         = admin.RetryTaskResult
+	RevokeTaskResult        = admin.RevokeTaskResult
+	ReplayDeadLetterOptions = admin.ReplayDeadLetterOptions
+	ReplayDeadLetterResult  = admin.ReplayDeadLetterResult
+	PurgeQueueOptions       = admin.PurgeQueueOptions
+	PurgeQueueResult        = admin.PurgeQueueResult
+	DeleteDeadLettersResult = admin.DeleteDeadLettersResult
+	Worker                  = worker.Worker
+	WorkerOption            = worker.WorkerOption
 )
 
 var (
-	ErrInvalidTaskName     = task.ErrInvalidTaskName
-	ErrInvalidTaskID       = task.ErrInvalidTaskID
-	ErrInvalidPriority     = task.ErrInvalidPriority
-	ErrInvalidTaskState    = task.ErrInvalidTaskState
-	ErrInvalidRetryPolicy  = task.ErrInvalidRetryPolicy
-	ErrInvalidTaskTiming   = task.ErrInvalidTaskTiming
-	ErrInvalidPayload      = task.ErrInvalidPayload
-	ErrDuplicateTask       = task.ErrDuplicateTask
-	ErrInvalidTaskHandler  = task.ErrInvalidTaskHandler
-	ErrTaskNotFound        = task.ErrTaskNotFound
-	ErrNilBackend          = producer.ErrNilBackend
-	ErrNilWorker           = worker.ErrNilWorker
-	ErrNilTaskRegistry     = worker.ErrNilTaskRegistry
-	ErrMissingTaskName     = producer.ErrMissingTaskName
-	ErrMissingApplyOption  = producer.ErrMissingApplyOption
-	ErrInvalidSchedule     = scheduler.ErrInvalidSchedule
-	ErrInvalidPeriodicTask = scheduler.ErrInvalidPeriodicTask
-	ErrNilSchedulerBackend = scheduler.ErrNilBackend
-	ErrInvalidWorkflow     = workflow.ErrInvalidWorkflow
-	ErrInvalidSignature    = workflow.ErrInvalidSignature
-	ErrNilCanvasBackend    = workflow.ErrNilBackend
-	ErrInvalidWorkerOption = worker.ErrInvalidWorkerOption
-	ErrNilInspector        = inspect.ErrNilInspector
-	ErrInspectorBackend    = inspect.ErrInspectorBackend
-	ErrEmptyQueueName      = inspect.ErrEmptyQueueName
-	ErrInvalidDeadLetters  = inspect.ErrInvalidDeadLetters
+	ErrInvalidTaskName      = task.ErrInvalidTaskName
+	ErrInvalidTaskID        = task.ErrInvalidTaskID
+	ErrInvalidPriority      = task.ErrInvalidPriority
+	ErrInvalidTaskState     = task.ErrInvalidTaskState
+	ErrInvalidRetryPolicy   = task.ErrInvalidRetryPolicy
+	ErrInvalidTaskTiming    = task.ErrInvalidTaskTiming
+	ErrInvalidPayload       = task.ErrInvalidPayload
+	ErrDuplicateTask        = task.ErrDuplicateTask
+	ErrInvalidTaskHandler   = task.ErrInvalidTaskHandler
+	ErrTaskNotFound         = task.ErrTaskNotFound
+	ErrNilBackend           = producer.ErrNilBackend
+	ErrNilWorker            = worker.ErrNilWorker
+	ErrNilTaskRegistry      = worker.ErrNilTaskRegistry
+	ErrMissingTaskName      = producer.ErrMissingTaskName
+	ErrMissingApplyOption   = producer.ErrMissingApplyOption
+	ErrInvalidSchedule      = scheduler.ErrInvalidSchedule
+	ErrInvalidPeriodicTask  = scheduler.ErrInvalidPeriodicTask
+	ErrNilSchedulerBackend  = scheduler.ErrNilBackend
+	ErrInvalidWorkflow      = workflow.ErrInvalidWorkflow
+	ErrInvalidSignature     = workflow.ErrInvalidSignature
+	ErrNilCanvasBackend     = workflow.ErrNilBackend
+	ErrInvalidWorkerOption  = worker.ErrInvalidWorkerOption
+	ErrNilInspector         = inspect.ErrNilInspector
+	ErrInspectorBackend     = inspect.ErrInspectorBackend
+	ErrEmptyQueueName       = inspect.ErrEmptyQueueName
+	ErrInvalidDeadLetters   = inspect.ErrInvalidDeadLetters
+	ErrNilAdmin             = admin.ErrNilAdmin
+	ErrAdminBackend         = admin.ErrAdminBackend
+	ErrInvalidControlOption = admin.ErrInvalidControlOption
+	ErrTaskMessageNotFound  = backend.ErrTaskMessageNotFound
+	ErrDeadLetterNotFound   = backend.ErrDeadLetterNotFound
+	ErrTaskStateNotFound    = backend.ErrTaskStateNotFound
+	ErrTaskResultNotFound   = backend.ErrTaskResultNotFound
 )
 
 const (

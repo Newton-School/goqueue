@@ -1,6 +1,7 @@
 package goqueue
 
 import (
+	"github.com/Newton-School/goqueue/admin"
 	"github.com/Newton-School/goqueue/inspect"
 	"github.com/Newton-School/goqueue/producer"
 	"github.com/Newton-School/goqueue/scheduler"
@@ -115,4 +116,14 @@ func (a *App) NewInspector() (*inspect.Inspector, error) {
 	}
 
 	return inspect.NewInspector(backend)
+}
+
+// NewAdmin creates an operational control client for recovery and remediation tasks.
+func (a *App) NewAdmin() (*admin.Admin, error) {
+	backend, err := a.NewRedisBackend()
+	if err != nil {
+		return nil, err
+	}
+
+	return admin.NewAdmin(backend)
 }

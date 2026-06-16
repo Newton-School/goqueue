@@ -10,7 +10,9 @@ now includes task identity primitives, producer APIs, Redis backend storage, and
 a production-grade worker runtime with acknowledgements, retries, dead-letter
 queues, pending recovery, task state/result persistence, and Redis-coordinated
 periodic task dispatch, chains, groups, and chords.
-Phase 8 adds inspection APIs for queue health and task observability plus a read-only CLI.
+Phase 8 added inspection APIs for queue health and task observability. Phase 9 adds
+control-plane operations for retries, revocation, dead-letter replay and cleanup,
+and queue purge through the root `Admin` API and dedicated CLI commands.
 
 ## Installation
 
@@ -276,13 +278,18 @@ suite.
 
 ## CLI
 
-The CLI is available under `cmd/goqueue` for read-only production diagnostics:
+The CLI is available under `cmd/goqueue` for inspection and operational control:
 
 ```bash
 go run ./cmd/goqueue inspect task --id <task-id>
 go run ./cmd/goqueue inspect stats --queue default
 go run ./cmd/goqueue inspect deadletters --queue default --count 20
 go run ./cmd/goqueue inspect ping
+go run ./cmd/goqueue control retry-task --id <task-id> --queue critical --json
+go run ./cmd/goqueue control revoke-task --id <task-id> --reason "operator request"
+go run ./cmd/goqueue control replay-dead-letter --queue default --stream-id 1-0
+go run ./cmd/goqueue control delete-dead-letter --queue default --stream-id 1-0,1-1
+go run ./cmd/goqueue control purge-queue --queue default --delete-messages
 ```
 
 Set `--json` when you need machine-readable output.
@@ -299,6 +306,9 @@ Set `--json` when you need machine-readable output.
 ├── backend/
 │   Backend interfaces and storage request/response contracts used by future
 │   producers, schedulers, and workers.
+├── admin/
+│   Control APIs for retries, revocations, dead-letter replay/cleanup, and queue
+│   purge.
 ├── producer/
 │   Producer API for enqueuing immediate and scheduled tasks.
 ├── inspect/
@@ -336,6 +346,7 @@ module root.
 4. ✅ Scheduler and periodic jobs.
 5. ✅ Canvas primitives: chains, groups, and chords.
 6. ✅ Observability, inspection APIs, and CLI commands.
+7. ✅ Operational control-plane APIs and command surface.
 
 ## Security
 
