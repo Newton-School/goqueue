@@ -18,7 +18,7 @@ This file tracks granular completion milestones during implementation.
 - [x] Milestone 014 captured
 - [x] Milestone 015 captured
 - [x] Milestone 016 captured
-- [ ] Milestone 017 captured
+- [x] Milestone 017 captured
 - [ ] Milestone 018 captured
 - [ ] Milestone 019 captured
 - [ ] Milestone 020 captured
