@@ -19,20 +19,20 @@ type TaskInspection struct {
 
 // TaskState wraps backend state storage with normalized JSON-safe shape.
 type TaskState struct {
-	TaskID    task.TaskID     `json:"task_id"`
-	State     task.TaskState  `json:"state"`
-	Error     string          `json:"error"`
-	UpdatedAt time.Time       `json:"updated_at"`
+	TaskID    task.TaskID    `json:"task_id"`
+	State     task.TaskState `json:"state"`
+	Error     string         `json:"error"`
+	UpdatedAt time.Time      `json:"updated_at"`
 }
 
 // TaskResult wraps backend result storage with normalized JSON-safe shape.
 type TaskResult struct {
-	TaskID    task.TaskID          `json:"task_id"`
-	State     task.TaskState       `json:"state"`
-	Value     any                  `json:"value"`
-	Error     string               `json:"error"`
-	Metadata  map[string]string    `json:"metadata"`
-	UpdatedAt time.Time            `json:"updated_at"`
+	TaskID    task.TaskID       `json:"task_id"`
+	State     task.TaskState    `json:"state"`
+	Value     any               `json:"value"`
+	Error     string            `json:"error"`
+	Metadata  map[string]string `json:"metadata"`
+	UpdatedAt time.Time         `json:"updated_at"`
 }
 
 // TaskSnapshot returns combined task state and result data.

@@ -17,7 +17,7 @@ func (i *Inspector) TaskResult(ctx context.Context, taskID task.TaskID) (backend
 	}
 	if err := task.ValidateTaskID(taskID.String()); err != nil {
 		return backend.TaskResultRecord{}, err
- 	}
+	}
 
 	return i.backend.GetTaskResult(ctx, taskID)
 }

@@ -13,18 +13,18 @@ import (
 var errInspectable = errors.New("inspect backend")
 
 type fakeBackend struct {
-	taskStateErr     error
-	taskResultErr    error
-	forgetResultErr  error
-	pingErr          error
-	deadLetterReq    backend.ReadDeadLettersRequest
-	deadLetterResp   []backend.DeadLetterRecord
-	deadLetterErr    error
-	statsReq         backend.QueueStatsRequest
-	statsResp        backend.QueueStats
-	statsErr         error
-	stateResult      backend.TaskStateRecord
-	resultResult     backend.TaskResultRecord
+	taskStateErr    error
+	taskResultErr   error
+	forgetResultErr error
+	pingErr         error
+	deadLetterReq   backend.ReadDeadLettersRequest
+	deadLetterResp  []backend.DeadLetterRecord
+	deadLetterErr   error
+	statsReq        backend.QueueStatsRequest
+	statsResp       backend.QueueStats
+	statsErr        error
+	stateResult     backend.TaskStateRecord
+	resultResult    backend.TaskResultRecord
 }
 
 func (f *fakeBackend) EnqueueReady(_ context.Context, _ backend.EnqueueRequest) (backend.EnqueueResponse, error) {
@@ -61,19 +61,27 @@ func (f *fakeBackend) ReadDeadLetters(_ context.Context, req backend.ReadDeadLet
 	return f.deadLetterResp, f.deadLetterErr
 }
 
-func (f *fakeBackend) UpsertPeriodicTask(_ context.Context, _ backend.UpsertPeriodicTaskRequest) error { return nil }
-func (f *fakeBackend) DeletePeriodicTask(_ context.Context, _ backend.DeletePeriodicTaskRequest) error { return nil }
+func (f *fakeBackend) UpsertPeriodicTask(_ context.Context, _ backend.UpsertPeriodicTaskRequest) error {
+	return nil
+}
+func (f *fakeBackend) DeletePeriodicTask(_ context.Context, _ backend.DeletePeriodicTaskRequest) error {
+	return nil
+}
 func (f *fakeBackend) ListDuePeriodicTasks(_ context.Context, _ backend.ListDuePeriodicTasksRequest) ([]backend.DuePeriodicTask, error) {
 	return nil, nil
 }
 func (f *fakeBackend) MarkPeriodicTaskDispatched(_ context.Context, _ backend.MarkPeriodicTaskDispatchedRequest) error {
 	return nil
 }
-func (f *fakeBackend) SaveWorkflowChain(_ context.Context, _ backend.WorkflowChainRecord) error { return nil }
+func (f *fakeBackend) SaveWorkflowChain(_ context.Context, _ backend.WorkflowChainRecord) error {
+	return nil
+}
 func (f *fakeBackend) AdvanceWorkflowChain(_ context.Context, _ backend.AdvanceWorkflowChainRequest) (backend.AdvanceWorkflowChainResponse, error) {
 	return backend.AdvanceWorkflowChainResponse{}, nil
 }
-func (f *fakeBackend) SaveWorkflowGroup(_ context.Context, _ backend.WorkflowGroupRecord) error { return nil }
+func (f *fakeBackend) SaveWorkflowGroup(_ context.Context, _ backend.WorkflowGroupRecord) error {
+	return nil
+}
 func (f *fakeBackend) RecordWorkflowTaskCompleted(_ context.Context, _ backend.RecordWorkflowTaskCompletedRequest) (backend.WorkflowGroupProgress, error) {
 	return backend.WorkflowGroupProgress{}, nil
 }
@@ -100,7 +108,9 @@ func (f *fakeBackend) GetTaskResult(_ context.Context, taskID task.TaskID) (back
 	return f.resultResult, nil
 }
 
-func (f *fakeBackend) ForgetTaskResult(_ context.Context, _ task.TaskID) error { return f.forgetResultErr }
+func (f *fakeBackend) ForgetTaskResult(_ context.Context, _ task.TaskID) error {
+	return f.forgetResultErr
+}
 func (f *fakeBackend) QueueStats(_ context.Context, req backend.QueueStatsRequest) (backend.QueueStats, error) {
 	f.statsReq = req
 	if f.statsErr != nil {
@@ -109,7 +119,7 @@ func (f *fakeBackend) QueueStats(_ context.Context, req backend.QueueStatsReques
 	return f.statsResp, nil
 }
 func (f *fakeBackend) Ping(_ context.Context) error { return f.pingErr }
-func (f *fakeBackend) Close() error { return nil }
+func (f *fakeBackend) Close() error                 { return nil }
 
 func TestNewInspectorRequiresBackend(t *testing.T) {
 	_, err := NewInspector(nil)

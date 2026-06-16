@@ -102,10 +102,10 @@ var (
 	ErrInvalidSignature    = workflow.ErrInvalidSignature
 	ErrNilCanvasBackend    = workflow.ErrNilBackend
 	ErrInvalidWorkerOption = worker.ErrInvalidWorkerOption
-	ErrNilInspector       = inspect.ErrNilInspector
-	ErrInspectorBackend   = inspect.ErrInspectorBackend
-	ErrEmptyQueueName     = inspect.ErrEmptyQueueName
-	ErrInvalidDeadLetters = inspect.ErrInvalidDeadLetters
+	ErrNilInspector        = inspect.ErrNilInspector
+	ErrInspectorBackend    = inspect.ErrInspectorBackend
+	ErrEmptyQueueName      = inspect.ErrEmptyQueueName
+	ErrInvalidDeadLetters  = inspect.ErrInvalidDeadLetters
 )
 
 const (
