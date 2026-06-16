@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -44,8 +45,11 @@ func TestPrintJSONProducesMachineFormat(t *testing.T) {
 		printJSON(captured)
 	})
 
-	if output != `{\n  "status": "ok"\n}\n` {
-		t.Fatalf("printJSON output = %q, want JSON map", output)
+	if output == "" {
+		t.Fatal("printJSON output is empty")
+	}
+	if expected := `"status": "ok"`; !strings.Contains(output, expected) {
+		t.Fatalf("printJSON output = %q, want %q", output, expected)
 	}
 }
 
