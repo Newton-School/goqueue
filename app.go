@@ -1,6 +1,7 @@
 package goqueue
 
 import (
+	"github.com/Newton-School/goqueue/inspect"
 	"github.com/Newton-School/goqueue/producer"
 	"github.com/Newton-School/goqueue/scheduler"
 	"github.com/Newton-School/goqueue/worker"
@@ -104,4 +105,14 @@ func (a *App) NewCanvas(opts ...workflow.CanvasOption) (*workflow.Canvas, error)
 	)
 
 	return workflow.NewCanvas(backend, allOpts...)
+}
+
+// NewInspector creates an inspection client bound to the configured backend.
+func (a *App) NewInspector() (*inspect.Inspector, error) {
+	backend, err := a.NewRedisBackend()
+	if err != nil {
+		return nil, err
+	}
+
+	return inspect.NewInspector(backend)
 }

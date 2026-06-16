@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/Newton-School/goqueue/inspect"
 	"github.com/Newton-School/goqueue/producer"
 	"github.com/Newton-School/goqueue/scheduler"
 	"github.com/Newton-School/goqueue/task"
@@ -70,6 +71,10 @@ type (
 	ChainResult       = workflow.ChainResult
 	GroupResult       = workflow.GroupResult
 	ChordResult       = workflow.ChordResult
+	Inspector         = inspect.Inspector
+	TaskInspection    = inspect.TaskInspection
+	TaskInspectState  = inspect.TaskState
+	TaskInspectResult = inspect.TaskResult
 	Worker            = worker.Worker
 	WorkerOption      = worker.WorkerOption
 )
@@ -97,6 +102,10 @@ var (
 	ErrInvalidSignature    = workflow.ErrInvalidSignature
 	ErrNilCanvasBackend    = workflow.ErrNilBackend
 	ErrInvalidWorkerOption = worker.ErrInvalidWorkerOption
+	ErrNilInspector       = inspect.ErrNilInspector
+	ErrInspectorBackend   = inspect.ErrInspectorBackend
+	ErrEmptyQueueName     = inspect.ErrEmptyQueueName
+	ErrInvalidDeadLetters = inspect.ErrInvalidDeadLetters
 )
 
 const (
