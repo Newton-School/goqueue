@@ -140,6 +140,21 @@ func TestAppNewCanvasUsesConfigDefaults(t *testing.T) {
 	}
 }
 
+func TestAppNewInspectorUsesConfigDefaults(t *testing.T) {
+	app, err := New(WithRedisURL("redis://localhost:6379/0"), WithDefaultQueue("billing"))
+	if err != nil {
+		t.Fatalf("New returned error: %v", err)
+	}
+
+	inspector, err := app.NewInspector()
+	if err != nil {
+		t.Fatalf("NewInspector returned error: %v", err)
+	}
+	if inspector == nil {
+		t.Fatal("NewInspector returned nil")
+	}
+}
+
 func TestRootSchedulerExportsCompile(t *testing.T) {
 	definition := PeriodicTask{
 		Name:     PeriodicTaskName("welcome-email"),
