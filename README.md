@@ -10,6 +10,7 @@ now includes task identity primitives, producer APIs, Redis backend storage, and
 a production-grade worker runtime with acknowledgements, retries, dead-letter
 queues, pending recovery, task state/result persistence, and Redis-coordinated
 periodic task dispatch, chains, groups, and chords.
+Phase 8 adds inspection APIs for queue health and task observability plus a read-only CLI.
 
 ## Installation
 
@@ -273,6 +274,19 @@ make verify
 `make verify` checks formatting, runs `go vet`, and executes the full test
 suite.
 
+## CLI
+
+The CLI is available under `cmd/goqueue` for read-only production diagnostics:
+
+```bash
+go run ./cmd/goqueue inspect task --id <task-id>
+go run ./cmd/goqueue inspect stats --queue default
+go run ./cmd/goqueue inspect deadletters --queue default --count 20
+go run ./cmd/goqueue inspect ping
+```
+
+Set `--json` when you need machine-readable output.
+
 ## Package Layout
 
 ```text
@@ -287,6 +301,8 @@ suite.
 │   producers, schedulers, and workers.
 ├── producer/
 │   Producer API for enqueuing immediate and scheduled tasks.
+├── inspect/
+│   Read-only APIs for task state, result, dead-letter queues, and queue stats.
 ├── worker/
 │   Worker runtime for consuming and executing task messages.
 ├── scheduler/
@@ -319,7 +335,7 @@ module root.
 3. ✅ Retries, dead-letter queues, and task expiration.
 4. ✅ Scheduler and periodic jobs.
 5. ✅ Canvas primitives: chains, groups, and chords.
-6. Observability, inspection APIs, and CLI commands.
+6. ✅ Observability, inspection APIs, and CLI commands.
 
 ## Security
 
