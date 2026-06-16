@@ -15,7 +15,7 @@ func (i *Inspector) ReadDeadLetters(ctx context.Context, queue task.QueueName, c
 	if i.backend == nil {
 		return nil, ErrInspectorBackend
 	}
-	if err := queue.Validate(); err != nil {
+	if err := task.ValidateQueueName(queue.String()); err != nil {
 		return nil, err
 	}
 	if count < 0 {
