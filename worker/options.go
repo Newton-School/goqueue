@@ -48,8 +48,12 @@ func defaultWorkerConfig() WorkerConfig {
 		pendingMinIdle:         5 * time.Minute,
 		pendingClaimBatch:      100,
 		pendingClaimInterval:   time.Minute,
-		now:                    time.Now().UTC,
+		now:                    utcNow,
 	}
+}
+
+func utcNow() time.Time {
+	return time.Now().UTC()
 }
 
 // WithWorkerQueue sets the queue the worker reads from.

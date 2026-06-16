@@ -39,6 +39,16 @@ func TaskEnvelopeToMessage(envelope TaskEnvelope, codec PayloadCodec) (TaskMessa
 
 // TaskMessageToEnvelope decodes a backend message into a validated envelope.
 func TaskMessageToEnvelope(message TaskMessage, codec PayloadCodec) (TaskEnvelope, error) {
+	if err := ValidateTaskID(message.ID); err != nil {
+		return TaskEnvelope{}, err
+	}
+	if err := ValidateTaskName(message.Name); err != nil {
+		return TaskEnvelope{}, err
+	}
+	if err := ValidateQueueName(message.Queue); err != nil {
+		return TaskEnvelope{}, err
+	}
+
 	payload, err := codec.DecodePayload(message.Payload)
 	if err != nil {
 		return TaskEnvelope{}, err

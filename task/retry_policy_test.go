@@ -26,6 +26,15 @@ func TestRetryPolicyValidateRejectsInvalidAttempts(t *testing.T) {
 	}
 }
 
+func TestRetryPolicyValidateRejectsExcessiveAttempts(t *testing.T) {
+	policy := RetryPolicy{MaxAttempts: MaxRetryAttempts + 1}
+
+	err := policy.Validate()
+	if !errors.Is(err, ErrInvalidRetryPolicy) {
+		t.Fatalf("Validate error = %v, want ErrInvalidRetryPolicy", err)
+	}
+}
+
 func TestRetryPolicyValidateRejectsInvalidBackoff(t *testing.T) {
 	policy := RetryPolicy{
 		MaxAttempts: 2,
@@ -36,6 +45,17 @@ func TestRetryPolicyValidateRejectsInvalidBackoff(t *testing.T) {
 	err := policy.Validate()
 	if !errors.Is(err, ErrInvalidRetryPolicy) {
 		t.Fatalf("Validate error = %v, want ErrInvalidRetryPolicy", err)
+	}
+}
+
+func TestRetryPolicyDelayForAttemptCapsOverflow(t *testing.T) {
+	policy := RetryPolicy{
+		MaxAttempts: 3,
+		Backoff:     maxRetryDelay/2 + time.Nanosecond,
+	}
+
+	if got := policy.DelayForAttempt(2); got != maxRetryDelay {
+		t.Fatalf("DelayForAttempt overflow cap = %s, want %s", got, maxRetryDelay)
 	}
 }
 

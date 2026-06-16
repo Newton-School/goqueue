@@ -3,11 +3,7 @@ package task
 import "testing"
 
 func TestPayloadCodecInterfaceAcceptsTestCodec(t *testing.T) {
-	var codec PayloadCodec = testPayloadCodec{}
-
-	if codec == nil {
-		t.Fatal("PayloadCodec should accept implementations")
-	}
+	var _ PayloadCodec = testPayloadCodec{}
 }
 
 type testPayloadCodec struct{}

@@ -15,9 +15,10 @@ import (
 )
 
 const (
-	MinPriority     = task.MinPriority
-	DefaultPriority = task.DefaultPriority
-	MaxPriority     = task.MaxPriority
+	MinPriority      = task.MinPriority
+	DefaultPriority  = task.DefaultPriority
+	MaxPriority      = task.MaxPriority
+	MaxRetryAttempts = task.MaxRetryAttempts
 )
 
 const (
@@ -97,6 +98,7 @@ var (
 	ErrInvalidTaskState     = task.ErrInvalidTaskState
 	ErrInvalidRetryPolicy   = task.ErrInvalidRetryPolicy
 	ErrInvalidTaskTiming    = task.ErrInvalidTaskTiming
+	ErrInvalidTaskAttempt   = task.ErrInvalidTaskAttempt
 	ErrInvalidPayload       = task.ErrInvalidPayload
 	ErrDuplicateTask        = task.ErrDuplicateTask
 	ErrInvalidTaskHandler   = task.ErrInvalidTaskHandler

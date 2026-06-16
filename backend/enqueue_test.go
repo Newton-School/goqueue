@@ -27,6 +27,36 @@ func TestEnqueueRequestValidateRejectsMissingID(t *testing.T) {
 	}
 }
 
+func TestEnqueueRequestValidateRejectsInvalidID(t *testing.T) {
+	message := testTaskMessage(t)
+	message.ID = "not-a-uuid"
+
+	err := (EnqueueRequest{Message: message}).Validate()
+	if !errors.Is(err, task.ErrInvalidTaskID) {
+		t.Fatalf("Validate error = %v, want ErrInvalidTaskID", err)
+	}
+}
+
+func TestEnqueueRequestValidateRejectsInvalidQueue(t *testing.T) {
+	message := testTaskMessage(t)
+	message.Queue = "bad queue"
+
+	err := (EnqueueRequest{Message: message}).Validate()
+	if !errors.Is(err, task.ErrInvalidQueueName) {
+		t.Fatalf("Validate error = %v, want ErrInvalidQueueName", err)
+	}
+}
+
+func TestEnqueueRequestValidateRejectsNegativeAttempt(t *testing.T) {
+	message := testTaskMessage(t)
+	message.Attempt = -1
+
+	err := (EnqueueRequest{Message: message}).Validate()
+	if !errors.Is(err, task.ErrInvalidTaskAttempt) {
+		t.Fatalf("Validate error = %v, want ErrInvalidTaskAttempt", err)
+	}
+}
+
 func testTaskMessage(t *testing.T) task.TaskMessage {
 	t.Helper()
 

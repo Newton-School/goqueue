@@ -117,7 +117,7 @@ func printUsage() {
 	fmt.Println("  control revoke-task --id <task_id> [--reason <text>]")
 	fmt.Println("  control replay-dead-letter --queue <queue> --stream-id <id> [--destination-queue <queue>] [--delete-source]")
 	fmt.Println("  control delete-dead-letter --queue <queue> --stream-id <id>[,<id>...] [--json]")
-	fmt.Println("  control purge-queue --queue <queue> [--delete-messages] [--delete-states] [--delete-results]")
+	fmt.Println("  control purge-queue --queue <queue> --yes [--delete-messages] [--delete-states] [--delete-results]")
 	fmt.Println()
 	fmt.Println("Global flags (per command):")
 	fmt.Println("  --redis-url string")
@@ -146,7 +146,7 @@ func printControlUsage() {
 	fmt.Println("  goqueue control revoke-task --id <task_id>")
 	fmt.Println("  goqueue control replay-dead-letter --queue <queue> --stream-id <id>")
 	fmt.Println("  goqueue control delete-dead-letter --queue <queue> --stream-id <id>[,<id>...]")
-	fmt.Println("  goqueue control purge-queue --queue <queue>")
+	fmt.Println("  goqueue control purge-queue --queue <queue> --yes")
 }
 
 func exitOnError(err error, context string) {
@@ -588,8 +588,13 @@ func runControlPurgeQueue(args []string) {
 	deleteMessage := fs.Bool("delete-messages", false, "Delete persisted task messages")
 	deleteStates := fs.Bool("delete-states", false, "Delete persisted task states")
 	deleteResults := fs.Bool("delete-results", false, "Delete persisted task results")
+	confirmed := fs.Bool("yes", false, "Confirm destructive queue purge")
 	outputJSON := fs.Bool("json", false, "Print output as JSON")
 	_ = fs.Parse(args)
+
+	if err := validatePurgeConfirmation(*confirmed); err != nil {
+		exitOnError(err, "control purge-queue")
+	}
 
 	admin, err := newAdmin(*redisURL, *namespace)
 	exitOnError(err, "control purge-queue")
@@ -614,6 +619,14 @@ func runControlPurgeQueue(args []string) {
 	fmt.Printf("task_messages_deleted=%d\n", result.TaskMessages)
 	fmt.Printf("task_states_deleted=%d\n", result.TaskStates)
 	fmt.Printf("task_results_deleted=%d\n", result.TaskResults)
+}
+
+func validatePurgeConfirmation(confirmed bool) error {
+	if !confirmed {
+		return fmt.Errorf("purge queue requires --yes")
+	}
+
+	return nil
 }
 
 func ctx() context.Context {

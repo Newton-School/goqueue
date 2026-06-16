@@ -1,6 +1,9 @@
 package task
 
-import "testing"
+import (
+	"errors"
+	"testing"
+)
 
 func TestTaskEnvelopeToMessageSerializesPayload(t *testing.T) {
 	envelope, err := NewTaskEnvelope(TaskEnvelopeInput{
@@ -52,5 +55,32 @@ func TestTaskMessageToEnvelopeDecodesPayload(t *testing.T) {
 	}
 	if got := decoded.Payload.Kwargs()["user_id"]; got != "u_123" {
 		t.Fatalf("decoded kwarg = %v, want u_123", got)
+	}
+}
+
+func TestTaskMessageToEnvelopeRejectsMissingTaskID(t *testing.T) {
+	message := TaskMessage{
+		Name:    "email.send",
+		Queue:   "default",
+		Payload: []byte(`{"v":[],"kwargs":{}}`),
+	}
+
+	_, err := TaskMessageToEnvelope(message, JSONPayloadCodec{})
+	if !errors.Is(err, ErrInvalidTaskID) {
+		t.Fatalf("TaskMessageToEnvelope error = %v, want ErrInvalidTaskID", err)
+	}
+}
+
+func TestTaskMessageToEnvelopeRejectsInvalidTaskName(t *testing.T) {
+	message := TaskMessage{
+		ID:      "123e4567-e89b-42d3-a456-556642440111",
+		Name:    "bad task",
+		Queue:   "default",
+		Payload: []byte(`{"v":[],"kwargs":{}}`),
+	}
+
+	_, err := TaskMessageToEnvelope(message, JSONPayloadCodec{})
+	if !errors.Is(err, ErrInvalidTaskName) {
+		t.Fatalf("TaskMessageToEnvelope error = %v, want ErrInvalidTaskName", err)
 	}
 }

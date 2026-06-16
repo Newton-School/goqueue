@@ -758,6 +758,96 @@ func TestWorkerDeadLettersMalformedPayload(t *testing.T) {
 	}
 }
 
+func TestWorkerDeadLettersMalformedIdentityWithoutPoisoningQueue(t *testing.T) {
+	registry := task.NewTaskRegistry()
+	now := time.Date(2026, time.June, 14, 9, 0, 0, 0, time.UTC)
+	message := backend.ReadyMessage{
+		StreamID: "1-0",
+		Message: task.TaskMessage{
+			Queue:       "bad queue",
+			Payload:     []byte(`{"v":[],"kwargs":{}}`),
+			Priority:    task.DefaultPriority,
+			RetryPolicy: task.DefaultRetryPolicy(),
+			CreatedAt:   now,
+		},
+	}
+	ackCh := make(chan struct{}, 1)
+	backend := &fakeBackend{
+		readReadyFn: makeReadOnce(message),
+		ackFn: func(_ context.Context, _ backend.AckRequest) error {
+			select {
+			case ackCh <- struct{}{}:
+			default:
+			}
+			return nil
+		},
+	}
+
+	worker, err := NewWorker(
+		backend,
+		registry,
+		WithWorkerGroup("workers"),
+		WithWorkerConsumer("pod-1"),
+		WithWorkerReadBatch(1),
+		WithWorkerBlock(0),
+		WithWorkerIdleDelay(1*time.Millisecond),
+		WithWorkerNow(func() time.Time { return now }),
+		WithWorkerMoveDueEnabled(false),
+		WithWorkerQueue("billing"),
+	)
+	if err != nil {
+		t.Fatalf("NewWorker returned error: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- worker.Start(ctx)
+	}()
+
+	select {
+	case <-ackCh:
+	case <-time.After(2 * time.Second):
+		t.Fatal("task was not acknowledged")
+	}
+	cancel()
+
+	select {
+	case gotErr := <-errCh:
+		if gotErr != nil {
+			t.Fatalf("Start returned error: %v", gotErr)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("Start did not return")
+	}
+
+	if len(backend.deadLetterRequests) != 1 {
+		t.Fatalf("dead letter requests = %d, want 1", len(backend.deadLetterRequests))
+	}
+	deadLetter := backend.deadLetterRequests[0]
+	if deadLetter.Message.ID == "" {
+		t.Fatal("dead letter message id should be generated for readability")
+	}
+	if deadLetter.Message.Name != malformedTaskName {
+		t.Fatalf("dead letter message name = %q, want %q", deadLetter.Message.Name, malformedTaskName)
+	}
+	if deadLetter.Message.Queue != "billing" {
+		t.Fatalf("dead letter message queue = %q, want billing", deadLetter.Message.Queue)
+	}
+	if deadLetter.Message.Metadata[malformedGeneratedTaskIDFlag] != "true" {
+		t.Fatalf("generated id metadata = %q, want true", deadLetter.Message.Metadata[malformedGeneratedTaskIDFlag])
+	}
+	if deadLetter.Message.Metadata[malformedOriginalQueueKey] != "bad queue" {
+		t.Fatalf("original queue metadata = %q, want bad queue", deadLetter.Message.Metadata[malformedOriginalQueueKey])
+	}
+	if len(backend.setStateRequests) != 0 {
+		t.Fatalf("set state requests = %d, want 0 for missing original task id", len(backend.setStateRequests))
+	}
+	if len(backend.resultRequests) != 0 {
+		t.Fatalf("result requests = %d, want 0 for missing original task id", len(backend.resultRequests))
+	}
+}
+
 func TestWorkerProcessesClaimedPendingTask(t *testing.T) {
 	registry := task.NewTaskRegistry()
 	if err := registry.Register("email.send", task.TaskHandlerFunc(func(_ task.HandlerContext, _ task.TaskPayload) (task.TaskResult, error) {
@@ -1372,7 +1462,6 @@ type fakeBackend struct {
 	enqueueScheduledRequests []backend.EnqueueRequest
 	ensureConsumerGroupErr   error
 	moveDueScheduledErr      error
-	readReadyErr             error
 	readReadyFn              func(context.Context, backend.ReadReadyRequest) ([]backend.ReadyMessage, error)
 	claimStaleReadyFn        func(context.Context, backend.ClaimStaleReadyRequest) ([]backend.ReadyMessage, error)
 	ensureConsumerGroupFn    func(backend.ConsumerGroupRequest) error

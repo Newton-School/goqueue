@@ -43,7 +43,7 @@ func NewProducer(queueBackend backend.QueueBackend, opts ...ProducerOption) (*Pr
 	}
 
 	if config.now == nil {
-		config.now = time.Now().UTC
+		config.now = utcNow
 	}
 
 	return &Producer{

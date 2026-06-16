@@ -93,6 +93,24 @@ func TestPrintControlUsageIncludesReplayCommand(t *testing.T) {
 	}
 }
 
+func TestPrintControlUsageIncludesPurgeConfirmation(t *testing.T) {
+	output := captureStdout(t, func() {
+		printControlUsage()
+	})
+	if !strings.Contains(output, "purge-queue --queue <queue> --yes") {
+		t.Fatalf("printControlUsage output = %q, missing purge confirmation", output)
+	}
+}
+
+func TestValidatePurgeConfirmationRequiresYes(t *testing.T) {
+	if err := validatePurgeConfirmation(false); err == nil {
+		t.Fatal("validatePurgeConfirmation expected error")
+	}
+	if err := validatePurgeConfirmation(true); err != nil {
+		t.Fatalf("validatePurgeConfirmation returned error: %v", err)
+	}
+}
+
 func TestCtxReturnsContext(t *testing.T) {
 	ctx := ctx()
 	if ctx == nil {

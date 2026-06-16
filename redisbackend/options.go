@@ -39,6 +39,9 @@ func NewOptions(redisURL string, opts ...Option) Options {
 		}
 	}
 
+	options.RedisURL = strings.TrimSpace(options.RedisURL)
+	options.Namespace = strings.TrimSpace(options.Namespace)
+
 	return options
 }
 
@@ -60,14 +63,14 @@ func (o Options) Validate() error {
 		return fmt.Errorf("%w: namespace: %v", ErrInvalidRedisOptions, err)
 	}
 
-	if o.MessageTTL < 0 {
-		return fmt.Errorf("%w: message ttl cannot be negative", ErrInvalidRedisOptions)
+	if o.MessageTTL <= 0 {
+		return fmt.Errorf("%w: message ttl must be positive", ErrInvalidRedisOptions)
 	}
-	if o.StateTTL < 0 {
-		return fmt.Errorf("%w: state ttl cannot be negative", ErrInvalidRedisOptions)
+	if o.StateTTL <= 0 {
+		return fmt.Errorf("%w: state ttl must be positive", ErrInvalidRedisOptions)
 	}
-	if o.ResultTTL < 0 {
-		return fmt.Errorf("%w: result ttl cannot be negative", ErrInvalidRedisOptions)
+	if o.ResultTTL <= 0 {
+		return fmt.Errorf("%w: result ttl must be positive", ErrInvalidRedisOptions)
 	}
 
 	return nil

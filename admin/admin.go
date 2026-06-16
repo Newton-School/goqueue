@@ -54,14 +54,12 @@ func (a *Admin) RetryTask(ctx context.Context, taskID task.TaskID, options Retry
 	if err != nil {
 		return RetryTaskResult{}, err
 	}
-
-	parsed, err := task.TaskMessageToEnvelope(stored, task.JSONPayloadCodec{})
-	if err != nil {
-		return RetryTaskResult{}, err
+	if stored.ID != taskID.String() {
+		return RetryTaskResult{}, fmt.Errorf("%w: stored task id %q does not match requested id %q", ErrInvalidControlOption, stored.ID, taskID)
 	}
 
-	originalQueue := parsed.Queue
-	retryQueue := parsed.Queue
+	originalQueue := task.QueueName(stored.Queue)
+	retryQueue := originalQueue
 	if options.Queue != "" {
 		if err := task.ValidateQueueName(string(options.Queue)); err != nil {
 			return RetryTaskResult{}, err
@@ -69,38 +67,15 @@ func (a *Admin) RetryTask(ctx context.Context, taskID task.TaskID, options Retry
 		retryQueue = options.Queue
 	}
 
-	parsed.Queue = retryQueue
-	parsed.Timing.ETA = retryTaskETA(parsed.Timing, options)
+	retryMessage := stored
+	retryMessage.Queue = retryQueue.String()
+	retryMessage.Timing.ETA = retryTaskETA(stored.Timing, options)
 	if !options.PreserveAttempt {
-		parsed.Attempt = 0
-	}
-
-	retryEnvelope := task.TaskEnvelopeInput{
-		ID:          parsed.ID,
-		Name:        parsed.Name,
-		Queue:       retryQueue,
-		Args:        parsed.Payload.Args(),
-		Kwargs:      parsed.Payload.Kwargs(),
-		Metadata:    parsed.Metadata.Values(),
-		Timing:      parsed.Timing,
-		Priority:    parsed.Priority,
-		RetryPolicy: parsed.RetryPolicy,
-		Attempt:     parsed.Attempt,
-		CreatedAt:   parsed.CreatedAt,
-	}
-
-	envelopeMessage, err := task.NewTaskEnvelope(retryEnvelope)
-	if err != nil {
-		return RetryTaskResult{}, err
-	}
-
-	retryMessage, err := task.TaskEnvelopeToMessage(envelopeMessage, task.JSONPayloadCodec{})
-	if err != nil {
-		return RetryTaskResult{}, err
+		retryMessage.Attempt = 0
 	}
 
 	var response backend.EnqueueResponse
-	if retryEnvelope.Timing.ETA.IsZero() {
+	if retryMessage.Timing.ETA.IsZero() {
 		response, err = a.backend.EnqueueReady(ctx, backend.EnqueueRequest{Message: retryMessage})
 	} else {
 		response, err = a.backend.EnqueueScheduled(ctx, backend.EnqueueRequest{Message: retryMessage})
@@ -128,9 +103,9 @@ func (a *Admin) RetryTask(ctx context.Context, taskID task.TaskID, options Retry
 		TaskID:        taskID,
 		Queue:         retryQueue,
 		OriginalQueue: originalQueue,
-		ScheduledAt:   retryEnvelope.Timing.ETA,
+		ScheduledAt:   retryMessage.Timing.ETA,
 		EnqueueResult: response,
-		Attempt:       retryEnvelope.Attempt,
+		Attempt:       retryMessage.Attempt,
 	}, nil
 }
 

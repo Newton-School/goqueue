@@ -16,6 +16,8 @@ and queue purge through the root `Admin` API and dedicated CLI commands.
 
 ## Installation
 
+Requires Go 1.26.4 or newer.
+
 ```bash
 go get github.com/Newton-School/goqueue
 ```
@@ -289,7 +291,7 @@ go run ./cmd/goqueue control retry-task --id <task-id> --queue critical --json
 go run ./cmd/goqueue control revoke-task --id <task-id> --reason "operator request"
 go run ./cmd/goqueue control replay-dead-letter --queue default --stream-id 1-0
 go run ./cmd/goqueue control delete-dead-letter --queue default --stream-id 1-0,1-1
-go run ./cmd/goqueue control purge-queue --queue default --delete-messages
+go run ./cmd/goqueue control purge-queue --queue default --yes --delete-messages
 ```
 
 Set `--json` when you need machine-readable output.

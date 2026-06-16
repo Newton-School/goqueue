@@ -8,10 +8,7 @@ import (
 )
 
 func TestQueueBackendInterfaceAcceptsImplementation(t *testing.T) {
-	var backend QueueBackend = noopBackend{}
-	if backend == nil {
-		t.Fatal("QueueBackend should accept implementations")
-	}
+	var _ QueueBackend = noopBackend{}
 }
 
 type noopBackend struct{}

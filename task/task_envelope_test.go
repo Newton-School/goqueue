@@ -78,6 +78,18 @@ func TestNewTaskEnvelopeRejectsInvalidRetryPolicy(t *testing.T) {
 	}
 }
 
+func TestNewTaskEnvelopeRejectsNegativeAttempt(t *testing.T) {
+	_, err := NewTaskEnvelope(TaskEnvelopeInput{
+		Name:    "email.send",
+		Queue:   "default",
+		Attempt: -1,
+	})
+
+	if !errors.Is(err, ErrInvalidTaskAttempt) {
+		t.Fatalf("NewTaskEnvelope error = %v, want ErrInvalidTaskAttempt", err)
+	}
+}
+
 func TestTaskEnvelopeCloneCopiesPayloadAndMetadata(t *testing.T) {
 	envelope, err := NewTaskEnvelope(TaskEnvelopeInput{
 		Name:     "email.send",

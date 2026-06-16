@@ -28,6 +28,17 @@ func TestDefaultSchedulerConfigUsesProductionDefaults(t *testing.T) {
 	}
 }
 
+func TestDefaultSchedulerClockAdvances(t *testing.T) {
+	config := defaultSchedulerConfig()
+	first := config.now()
+	time.Sleep(2 * time.Millisecond)
+	second := config.now()
+
+	if !second.After(first) {
+		t.Fatalf("default scheduler clock did not advance: first=%s second=%s", first.Format(time.RFC3339Nano), second.Format(time.RFC3339Nano))
+	}
+}
+
 func TestSchedulerOptionsValidateValues(t *testing.T) {
 	config := defaultSchedulerConfig()
 	options := []SchedulerOption{

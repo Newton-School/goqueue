@@ -23,7 +23,7 @@ go install ./cmd/goqueue
 - `goqueue control revoke-task --id <task-id> [--reason <text>]`
 - `goqueue control replay-dead-letter --queue <queue> --stream-id <id> [--destination-queue <queue>] [--delete-source] [--json]`
 - `goqueue control delete-dead-letter --queue <queue> --stream-id <id>[,<id>...] [--json]`
-- `goqueue control purge-queue --queue <queue> [--delete-messages] [--delete-states] [--delete-results] [--json]`
+- `goqueue control purge-queue --queue <queue> --yes [--delete-messages] [--delete-states] [--delete-results] [--json]`
 
 ## Common options
 

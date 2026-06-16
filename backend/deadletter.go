@@ -38,7 +38,13 @@ type ReadDeadLettersRequest struct {
 
 // Validate verifies the dead-letter request can be stored safely.
 func (r DeadLetterRequest) Validate() error {
-	if err := (EnqueueRequest{Message: r.Message}).Validate(); err != nil {
+	if r.Message.ID == "" {
+		return fmt.Errorf("%w: dead letter task message id is required", ErrInvalidBackendRequest)
+	}
+	if r.Message.Name == "" {
+		return fmt.Errorf("%w: dead letter task message name is required", ErrInvalidBackendRequest)
+	}
+	if err := task.ValidateQueueName(r.Message.Queue); err != nil {
 		return err
 	}
 	if r.Reason == "" {

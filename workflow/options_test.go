@@ -22,6 +22,17 @@ func TestDefaultCanvasConfigUsesProductionDefaults(t *testing.T) {
 	}
 }
 
+func TestDefaultCanvasClockAdvances(t *testing.T) {
+	config := defaultCanvasConfig()
+	first := config.now()
+	time.Sleep(2 * time.Millisecond)
+	second := config.now()
+
+	if !second.After(first) {
+		t.Fatalf("default canvas clock did not advance: first=%s second=%s", first.Format(time.RFC3339Nano), second.Format(time.RFC3339Nano))
+	}
+}
+
 func TestCanvasOptionsApplyValues(t *testing.T) {
 	config := defaultCanvasConfig()
 	now := time.Date(2026, time.June, 15, 10, 0, 0, 0, time.UTC)

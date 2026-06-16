@@ -155,6 +155,17 @@ func TestNewProducerRequiresBackend(t *testing.T) {
 	}
 }
 
+func TestDefaultProducerClockAdvances(t *testing.T) {
+	config := defaultProducerConfig()
+	first := config.now()
+	time.Sleep(2 * time.Millisecond)
+	second := config.now()
+
+	if !second.After(first) {
+		t.Fatalf("default producer clock did not advance: first=%s second=%s", first.Format(time.RFC3339Nano), second.Format(time.RFC3339Nano))
+	}
+}
+
 func TestProducerApplyAsyncEnqueuesReadyTask(t *testing.T) {
 	backend := &fakeBackend{}
 	producer, err := NewProducer(backend)

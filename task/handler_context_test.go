@@ -41,6 +41,7 @@ func TestNewHandlerContextUsesBackgroundForNilContext(t *testing.T) {
 		t.Fatalf("NewTaskEnvelope returned error: %v", err)
 	}
 
+	//lint:ignore SA1012 nil context fallback is the behavior under test.
 	handlerContext := NewHandlerContext(nil, envelope)
 	if handlerContext.Context() == nil {
 		t.Fatal("Context should not be nil")

@@ -215,7 +215,6 @@ func (b *Backend) PurgeQueue(ctx context.Context, request backend.PurgeQueueRequ
 	return result, nil
 }
 
-
 func (b *Backend) deleteMessageKeys(ctx context.Context, keys []string) (int64, error) {
 	if len(keys) == 0 {
 		return 0, nil

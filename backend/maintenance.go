@@ -16,13 +16,13 @@ type PurgeQueueRequest struct {
 
 // PurgeQueueResult reports what a purge operation removed.
 type PurgeQueueResult struct {
-	Queue             task.QueueName
-	ReadyStream       int64
-	ScheduledSet      int64
-	DeadLetterStream  int64
-	TaskMessages      int64
-	TaskStates        int64
-	TaskResults       int64
+	Queue            task.QueueName
+	ReadyStream      int64
+	ScheduledSet     int64
+	DeadLetterStream int64
+	TaskMessages     int64
+	TaskStates       int64
+	TaskResults      int64
 }
 
 // Validate verifies purge options.
@@ -33,4 +33,3 @@ func (r PurgeQueueRequest) Validate() error {
 
 	return nil
 }
-

@@ -50,4 +50,4 @@ Use `goqueue control ...` for operational workflows from shell environments:
 - `goqueue control revoke-task --id <task-id> [--reason <text>]`
 - `goqueue control replay-dead-letter --queue <queue> --stream-id <id>`
 - `goqueue control delete-dead-letter --queue <queue> --stream-id <id>[,<id>...]`
-- `goqueue control purge-queue --queue <queue> [--delete-messages] [--delete-states] [--delete-results]`
+- `goqueue control purge-queue --queue <queue> --yes [--delete-messages] [--delete-states] [--delete-results]`

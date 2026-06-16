@@ -28,8 +28,12 @@ func defaultSchedulerConfig() schedulerConfig {
 		batchSize:    100,
 		lockTTL:      30 * time.Second,
 		codec:        task.JSONPayloadCodec{},
-		now:          time.Now().UTC,
+		now:          utcNow,
 	}
+}
+
+func utcNow() time.Time {
+	return time.Now().UTC()
 }
 
 // WithSchedulerIdentity sets the scheduler identity used in Redis leases.

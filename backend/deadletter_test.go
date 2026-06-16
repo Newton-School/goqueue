@@ -35,6 +35,22 @@ func TestDeadLetterRequestValidateAcceptsValidRecord(t *testing.T) {
 	}
 }
 
+func TestDeadLetterRequestValidateRejectsUnsafeQueue(t *testing.T) {
+	err := DeadLetterRequest{
+		Message: task.TaskMessage{
+			ID:    "malformed-id",
+			Name:  "email.send",
+			Queue: "bad queue",
+		},
+		Reason:         task.FailureExecution,
+		SourceStreamID: "1-0",
+	}.Validate()
+
+	if err == nil {
+		t.Fatal("Validate expected error for unsafe queue")
+	}
+}
+
 func TestReadDeadLettersRequestValidateDefaultsCount(t *testing.T) {
 	request := ReadDeadLettersRequest{Queue: "default"}
 

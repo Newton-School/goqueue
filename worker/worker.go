@@ -88,7 +88,7 @@ func NewWorker(queueBackend backend.QueueBackend, registry *task.TaskRegistry, o
 		return nil, fmt.Errorf("%w: pending claim interval cannot be negative", ErrInvalidWorkerOption)
 	}
 	if config.now == nil {
-		config.now = time.Now().UTC
+		config.now = utcNow
 	}
 
 	return &Worker{

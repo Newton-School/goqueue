@@ -20,8 +20,12 @@ func defaultCanvasConfig() canvasConfig {
 	return canvasConfig{
 		defaultQueue: "default",
 		codec:        task.JSONPayloadCodec{},
-		now:          time.Now().UTC,
+		now:          utcNow,
 	}
+}
+
+func utcNow() time.Time {
+	return time.Now().UTC()
 }
 
 // WithCanvasDefaultQueue sets the queue used when a signature omits one.

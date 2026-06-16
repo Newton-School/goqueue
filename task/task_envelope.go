@@ -103,6 +103,10 @@ func (e TaskEnvelope) Validate() error {
 		return err
 	}
 
+	if e.Attempt < 0 {
+		return ErrInvalidTaskAttempt
+	}
+
 	return nil
 }
 

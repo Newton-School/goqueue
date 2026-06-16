@@ -8,27 +8,99 @@ import (
 	"github.com/Newton-School/goqueue/task"
 )
 
+const (
+	malformedTaskName            = "goqueue.malformed"
+	malformedOriginalIDKey       = "goqueue.malformed.original_id"
+	malformedOriginalNameKey     = "goqueue.malformed.original_name"
+	malformedOriginalQueueKey    = "goqueue.malformed.original_queue"
+	malformedGeneratedTaskIDFlag = "goqueue.malformed.generated_task_id"
+)
+
 func (w *Worker) deadLetterMalformedMessage(ctx context.Context, message backend.ReadyMessage, cause error) error {
-	envelope, err := task.NewTaskEnvelope(task.TaskEnvelopeInput{
-		ID:          task.TaskID(message.Message.ID),
-		Name:        task.TaskName(message.Message.Name),
-		Queue:       task.QueueName(message.Message.Queue),
-		Metadata:    message.Message.Metadata,
-		Timing:      message.Message.Timing,
-		Priority:    message.Message.Priority,
-		RetryPolicy: message.Message.RetryPolicy,
-		CreatedAt:   message.Message.CreatedAt,
-		Attempt:     message.Message.Attempt,
-	})
+	malformedMessage, stateTaskID, canWriteState, err := w.malformedDeadLetterMessage(message.Message)
 	if err != nil {
-		return fmt.Errorf("goqueue worker: build malformed message envelope: %w", err)
+		return err
 	}
 
 	result := task.FailedResult(cause)
-	if err := w.deadLetterTask(ctx, message.StreamID, envelope, message, task.FailureMalformedMessage, result); err != nil {
-		return err
+	deadLetteredAt := w.now()
+	result.Metadata = task.MergeFailureMetadata(result.Metadata, task.FailureMetadata{
+		Category:       task.FailureMalformedMessage,
+		Attempt:        malformedMessage.Attempt,
+		MaxAttempts:    malformedMessage.RetryPolicy.MaxAttempts,
+		Retryable:      false,
+		DeadLettered:   w.deadLetterEnabled,
+		DeadLetteredAt: deadLetteredAt,
+		LastError:      result.Error,
+	})
+
+	if w.deadLetterEnabled {
+		if _, err := w.backend.EnqueueDeadLetter(ctx, backend.DeadLetterRequest{
+			Message:        malformedMessage,
+			Reason:         task.FailureMalformedMessage,
+			Error:          result.Error,
+			SourceStreamID: message.StreamID,
+			Group:          w.group,
+			Consumer:       w.consumer,
+			FailedAt:       deadLetteredAt,
+		}); err != nil {
+			return err
+		}
 	}
+
+	if canWriteState {
+		state := task.TaskFailed
+		if w.deadLetterEnabled {
+			state = task.TaskDeadLettered
+		}
+		if err := w.writeState(ctx, stateTaskID, state, result.Error); err != nil {
+			return err
+		}
+		if err := w.saveResult(ctx, stateTaskID, result); err != nil {
+			return err
+		}
+	}
+
 	return w.ack(ctx, message.StreamID)
+}
+
+func (w *Worker) malformedDeadLetterMessage(message task.TaskMessage) (task.TaskMessage, task.TaskID, bool, error) {
+	metadata := copyStringMap(message.Metadata)
+
+	stateTaskID := task.TaskID(message.ID)
+	canWriteState := task.ValidateTaskID(message.ID) == nil
+	if message.ID == "" {
+		generated, err := task.NewTaskID()
+		if err != nil {
+			return task.TaskMessage{}, "", false, fmt.Errorf("goqueue worker: generate malformed task id: %w", err)
+		}
+		message.ID = generated.String()
+		metadata[malformedGeneratedTaskIDFlag] = "true"
+	}
+	if !canWriteState && stateTaskID != "" {
+		metadata[malformedOriginalIDKey] = stateTaskID.String()
+	}
+
+	if message.Name == "" {
+		message.Name = malformedTaskName
+		metadata[malformedOriginalNameKey] = ""
+	}
+
+	if err := task.ValidateQueueName(message.Queue); err != nil {
+		metadata[malformedOriginalQueueKey] = message.Queue
+		message.Queue = w.queue.String()
+	}
+
+	message.Metadata = metadata
+	return message, stateTaskID, canWriteState, nil
+}
+
+func copyStringMap(values map[string]string) map[string]string {
+	cloned := make(map[string]string, len(values)+4)
+	for key, value := range values {
+		cloned[key] = value
+	}
+	return cloned
 }
 
 func (w *Worker) deadLetterTask(

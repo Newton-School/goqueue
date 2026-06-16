@@ -37,8 +37,12 @@ func defaultProducerConfig() ProducerConfig {
 	return ProducerConfig{
 		defaultQueue: "default",
 		codec:        task.JSONPayloadCodec{},
-		now:          time.Now().UTC,
+		now:          utcNow,
 	}
+}
+
+func utcNow() time.Time {
+	return time.Now().UTC()
 }
 
 func defaultApplyConfig() ApplyConfig {

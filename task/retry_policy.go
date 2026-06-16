@@ -5,6 +5,13 @@ import (
 	"time"
 )
 
+const (
+	// MaxRetryAttempts bounds retry loops and protects workers from unsafe policies.
+	MaxRetryAttempts = 1000
+
+	maxRetryDelay = time.Duration(1<<63 - 1)
+)
+
 // RetryPolicy controls how many times a task may be attempted.
 type RetryPolicy struct {
 	MaxAttempts int
@@ -21,6 +28,9 @@ func DefaultRetryPolicy() RetryPolicy {
 func (p RetryPolicy) Validate() error {
 	if p.MaxAttempts < 1 {
 		return fmt.Errorf("%w: max attempts must be at least 1", ErrInvalidRetryPolicy)
+	}
+	if p.MaxAttempts > MaxRetryAttempts {
+		return fmt.Errorf("%w: max attempts cannot exceed %d", ErrInvalidRetryPolicy, MaxRetryAttempts)
 	}
 
 	if p.Backoff < 0 {
@@ -46,6 +56,13 @@ func (p RetryPolicy) DelayForAttempt(attempt int) time.Duration {
 
 	delay := p.Backoff
 	for range attempt - 1 {
+		if delay > maxRetryDelay/2 {
+			if p.MaxBackoff > 0 {
+				return p.MaxBackoff
+			}
+			return maxRetryDelay
+		}
+
 		next := delay * 2
 		if p.MaxBackoff > 0 && next > p.MaxBackoff {
 			return p.MaxBackoff

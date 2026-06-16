@@ -375,6 +375,50 @@ func TestRetryTaskSupportsQueueOverrideAndCountDown(t *testing.T) {
 	}
 }
 
+func TestRetryTaskPreservesRawPayloadForCustomCodecs(t *testing.T) {
+	rawPayload := []byte("custom-payload")
+	backend := &fakeControlBackend{
+		getTaskMessageFn: func(_ context.Context, id task.TaskID) (task.TaskMessage, error) {
+			message := testMessage(id)
+			message.Payload = rawPayload
+			return message, nil
+		},
+		enqueueReadyFn: func(_ context.Context, request backend.EnqueueRequest) (backend.EnqueueResponse, error) {
+			if string(request.Message.Payload) != string(rawPayload) {
+				t.Fatalf("requeued payload = %q, want %q", request.Message.Payload, rawPayload)
+			}
+			return backend.EnqueueResponse{TaskID: validTaskID, StreamID: "stream-id"}, nil
+		},
+	}
+	admin, err := NewAdmin(backend)
+	if err != nil {
+		t.Fatalf("NewAdmin returned error: %v", err)
+	}
+
+	if _, err := admin.RetryTask(context.Background(), validTaskID, RetryTaskOptions{}); err != nil {
+		t.Fatalf("RetryTask returned error: %v", err)
+	}
+}
+
+func TestRetryTaskRejectsMismatchedStoredTaskID(t *testing.T) {
+	backend := &fakeControlBackend{
+		getTaskMessageFn: func(_ context.Context, id task.TaskID) (task.TaskMessage, error) {
+			message := testMessage(id)
+			message.ID = "123e4567-e89b-42d3-a456-556642440999"
+			return message, nil
+		},
+	}
+	admin, err := NewAdmin(backend)
+	if err != nil {
+		t.Fatalf("NewAdmin returned error: %v", err)
+	}
+
+	_, err = admin.RetryTask(context.Background(), validTaskID, RetryTaskOptions{})
+	if !errors.Is(err, ErrInvalidControlOption) {
+		t.Fatalf("RetryTask error = %v, want ErrInvalidControlOption", err)
+	}
+}
+
 func TestRetryTaskReturnsErrorForInvalidOptions(t *testing.T) {
 	backend := &fakeControlBackend{}
 	admin, err := NewAdmin(backend)
