@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/Newton-School/goqueue/backend"
 	"github.com/Newton-School/goqueue/task"
 )
 

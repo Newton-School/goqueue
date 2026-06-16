@@ -172,9 +172,9 @@ func TestInspectorReadDeadLettersForwardsQueueRequest(t *testing.T) {
 		deadLetterResp: []backend.DeadLetterRecord{
 			{
 				Message: task.TaskMessage{
-					ID:    task.TaskID("123e4567-e89b-42d3-a456-556642440111"),
-					Name:  task.TaskName("email.send"),
-					Queue: queue,
+					ID:    "123e4567-e89b-42d3-a456-556642440111",
+					Name:  "email.send",
+					Queue: string(queue),
 				},
 				FailedAt: time.Date(2026, 6, 16, 10, 0, 0, 0, time.UTC),
 			},

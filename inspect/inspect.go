@@ -1,11 +1,9 @@
 package inspect
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/Newton-School/goqueue/backend"
-	"github.com/Newton-School/goqueue/task"
 )
 
 // Inspector provides read-only visibility APIs over task lifecycle data.
