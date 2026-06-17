@@ -22,8 +22,8 @@ type PeriodicTask struct {
 }
 ```
 
-`Every(duration)` creates an interval schedule. Phase 6 intentionally supports
-only fixed intervals; cron-style schedules belong in a later phase.
+`Every(duration)` creates an interval schedule. The current scheduler supports
+fixed intervals; cron-style schedules are reserved for a future release.
 
 ## Methods
 

@@ -296,6 +296,18 @@ go run ./cmd/goqueue control purge-queue --queue default --yes --delete-messages
 
 Set `--json` when you need machine-readable output.
 
+## Development Checks
+
+```bash
+make verify
+make audit
+GOQUEUE_RUN_INTEGRATION_TESTS=true GOQUEUE_REDIS_URL=redis://localhost:6379/0 make integration-test
+```
+
+`make audit` runs formatting, `go vet`, unit tests, `staticcheck`,
+`govulncheck`, and the race detector. Redis integration tests are separate
+because they require a running Redis server.
+
 ## Package Layout
 
 ```text
@@ -306,8 +318,8 @@ Set `--json` when you need machine-readable output.
 │   Redis-independent task domain model: identifiers, payloads, envelopes,
 │   messages, handlers, results, retry policy, timing, and registry.
 ├── backend/
-│   Backend interfaces and storage request/response contracts used by future
-│   producers, schedulers, and workers.
+│   Backend interfaces and storage request/response contracts used by
+│   producers, schedulers, workers, inspectors, and admin controls.
 ├── admin/
 │   Control APIs for retries, revocations, dead-letter replay/cleanup, and queue
 │   purge.
@@ -323,8 +335,6 @@ Set `--json` when you need machine-readable output.
 │   Canvas primitives: signatures, chains, groups, chords, and dispatch APIs.
 ├── redisbackend/
 │   Redis Streams, sorted sets, Lua scripts, scheduler leases, workflow state, task state, and result storage.
-├── docs/superpowers/plans/
-│   Phase implementation plans and acceptance checklists.
 ├── docs/reliability/
 │   Operational notes for DLQ, recovery, and failure metadata.
 ├── docs/scheduler/
@@ -335,10 +345,9 @@ Set `--json` when you need machine-readable output.
     CI verification.
 ```
 
-The root package keeps the convenient `goqueue.X` API. The `task` package owns
-the core task model implementation so future Redis backend, worker, scheduler,
-and CLI packages can depend on focused domain packages instead of a crowded
-module root.
+The root package keeps the convenient `goqueue.X` API. Focused subpackages own
+the implementation boundaries used by Redis storage, workers, schedulers,
+workflow primitives, inspection, control operations, and the CLI.
 
 ## Roadmap
 

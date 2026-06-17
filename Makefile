@@ -1,4 +1,4 @@
-.PHONY: fmt test vet verify
+.PHONY: fmt test vet race cover staticcheck vulncheck integration-test verify audit
 
 GOFILES := $(shell find . -name '*.go' -not -path './.git/*')
 
@@ -11,7 +11,24 @@ test:
 vet:
 	go vet ./...
 
+race:
+	go test -race ./...
+
+cover:
+	go test -cover ./...
+
+staticcheck:
+	go run honnef.co/go/tools/cmd/staticcheck@latest ./...
+
+vulncheck:
+	go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+
+integration-test:
+	GOQUEUE_RUN_INTEGRATION_TESTS=true go test -count=1 ./redisbackend
+
 verify:
 	@test -z "$$(gofmt -l $(GOFILES))"
 	go vet ./...
 	go test ./...
+
+audit: verify staticcheck vulncheck race
