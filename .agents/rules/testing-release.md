@@ -37,9 +37,8 @@ behavior.
 - Keep public docs free of internal phase plans, local paths, private
   operational context, and generated scratch artifacts.
 - Keep package docs present for public packages.
-- Keep examples compileable when possible.
-- Use root facade examples for SDK onboarding and focused package examples when
-  documenting internal extension points.
+- Keep `README.md` setup-only.
+- Keep detailed usage and feature behavior notes in `.agents/rules/` flow files.
 - `CLAUDE.md` should remain a symlink to `AGENTS.md` so agent instructions have
   one source of truth.
 

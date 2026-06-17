@@ -40,10 +40,10 @@ controls, or CLI output.
 
 ## Documentation
 
-- Update `README.md` and `docs/observability/` when CLI behavior or inspect
-  output changes.
-- Update `docs/reliability/` when retry, revocation, DLQ, pending recovery, or
-  purge semantics change.
+- Update `README.md` and `.agents/rules/operations.md` when CLI behavior or
+  inspect output changes.
+- Update `.agents/rules/operations.md` and `.agents/rules/worker-runtime.md` when
+  retry, revocation, DLQ, pending recovery, or purge semantics change.
 
 ## Tests
 

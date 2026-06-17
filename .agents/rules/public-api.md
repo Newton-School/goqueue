@@ -39,8 +39,8 @@ or anything that an importing application can compile against.
 
 ## Documentation
 
-- Update `README.md` when changing public usage or package layout.
-- Update `docs/` when changing runtime semantics, operational behavior, or
-  failure handling.
+- Update `README.md` only for setup or configuration setup changes.
+- Update relevant rule files in `.agents/rules/` when changing runtime
+  semantics, operational behavior, or failure handling.
 - Do not add internal planning notes, local paths, or private rollout history to
   public docs.

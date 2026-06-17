@@ -18,7 +18,8 @@ operator-facing output.
 | `scheduler/` | `scheduler-flow.md`, `producer-flow.md`, `redis-backend.md` |
 | `workflow/` | `workflow-canvas.md`, `producer-flow.md`, `worker-runtime.md` |
 | `inspect/`, `admin/`, `cmd/goqueue/` | `operations.md`, `redis-backend.md`, `security-config.md` |
-| `docs/`, `README.md`, `.github/`, `Makefile`, `.env.example`, `.gitignore` | `testing-release.md`, `security-config.md` |
+| `README.md` | `readme-policy.md` |
+| `.github/`, `Makefile`, `.env.example`, `.gitignore` | `testing-release.md`, `security-config.md`, `readme-policy.md` |
 
 ## Core Expectations
 

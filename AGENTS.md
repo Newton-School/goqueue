@@ -56,6 +56,7 @@ The normal execution path is:
   public packaging, and release readiness.
 - `.agents/rules/security-config.md` for secrets, environment variables,
   validation, Redis URLs, and safe logging.
+- `.agents/rules/readme-policy.md` for setup-only README constraints.
 
 ## Verification
 
