@@ -65,3 +65,27 @@ make verify
 ```
 
 This repository uses `make audit` in CI.
+
+## Documentation
+
+Documentation source is in `docs/`. Install and run it locally with:
+
+```bash
+make docs-install
+make docs-start
+```
+
+Build static documentation site:
+
+```bash
+make docs-build
+```
+
+Alternatively, run npm directly from the docs folder:
+
+```bash
+cd docs
+npm install
+npm run docs-start
+npm run docs-build
+```
