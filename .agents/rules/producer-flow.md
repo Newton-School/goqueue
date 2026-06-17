@@ -39,6 +39,15 @@ publish behavior, enqueue options, or producer-facing examples.
 - Scheduled tasks should not enter ready queues until the backend due-task move
   path promotes them.
 
+## Documentation
+
+- Update concept docs for producer timing/enqueue semantics and any queueing
+  behavior changes.
+- If retry policy defaults or metadata behavior changes, refresh the relevant
+  section under `docs/docs/concepts/task-model.md` and/or concept flow pages.
+- If producer options affect setup, route config updates through `readme-policy.md`.
+- When producer behavior changes, apply `docs-sync.md` before finalizing.
+
 ## Tests
 
 - Cover ready enqueue, scheduled enqueue, initial state persistence, custom task

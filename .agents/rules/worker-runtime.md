@@ -57,6 +57,15 @@ workers, or worker-facing options.
   status, next retry time, DLQ status, and last error where relevant.
 - Do not leak secrets through result errors or metadata.
 
+## Documentation
+
+- Update docs for execution semantics, retries, DLQ transitions, and worker
+  state progression when behavior changes.
+- If worker lifecycle output changes affect users, update `docs/docs/reference/errors.md`
+  and relevant concept pages under `docs/docs/concepts/worker.md`.
+- Use `docs-sync.md` for coordinating all user-facing doc updates in the same
+  commit.
+
 ## Tests
 
 - Cover ack ordering for success, failure, retry, retry exhaustion, expiration,

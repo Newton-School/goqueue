@@ -9,17 +9,17 @@ operator-facing output.
 
 | Path | Rule files |
 | --- | --- |
-| `app.go`, `config.go`, `errors.go`, `doc.go`, `task_exports.go` | `public-api.md`, `security-config.md` |
-| `task/` | `task-model.md`, `security-config.md` |
-| `producer/` | `producer-flow.md`, `task-model.md`, `redis-backend.md` |
-| `backend/` | `redis-backend.md`, `public-api.md` |
-| `redisbackend/` | `redis-backend.md`, `security-config.md`, `testing-release.md` |
-| `worker/` | `worker-runtime.md`, `task-model.md`, `workflow-canvas.md` |
-| `scheduler/` | `scheduler-flow.md`, `producer-flow.md`, `redis-backend.md` |
-| `workflow/` | `workflow-canvas.md`, `producer-flow.md`, `worker-runtime.md` |
-| `inspect/`, `admin/`, `cmd/goqueue/` | `operations.md`, `redis-backend.md`, `security-config.md` |
-| `README.md` | `readme-policy.md` |
-| `docs/` | `testing-release.md`, `readme-policy.md` |
+| `app.go`, `config.go`, `errors.go`, `doc.go`, `task_exports.go` | `public-api.md`, `docs-sync.md`, `security-config.md` |
+| `task/` | `task-model.md`, `docs-sync.md`, `security-config.md` |
+| `producer/` | `producer-flow.md`, `task-model.md`, `redis-backend.md`, `docs-sync.md` |
+| `backend/` | `redis-backend.md`, `public-api.md`, `docs-sync.md` |
+| `redisbackend/` | `redis-backend.md`, `security-config.md`, `testing-release.md`, `docs-sync.md` |
+| `worker/` | `worker-runtime.md`, `task-model.md`, `workflow-canvas.md`, `docs-sync.md` |
+| `scheduler/` | `scheduler-flow.md`, `producer-flow.md`, `redis-backend.md`, `docs-sync.md` |
+| `workflow/` | `workflow-canvas.md`, `producer-flow.md`, `worker-runtime.md`, `docs-sync.md` |
+| `inspect/`, `admin/`, `cmd/goqueue/` | `operations.md`, `redis-backend.md`, `security-config.md`, `docs-sync.md` |
+| `README.md` | `readme-policy.md`, `docs-sync.md` |
+| `docs/` | `testing-release.md`, `readme-policy.md`, `docs-sync.md` |
 | `.github/`, `Makefile`, `.env.example`, `.gitignore` | `testing-release.md`, `security-config.md`, `readme-policy.md` |
 
 ## Core Expectations

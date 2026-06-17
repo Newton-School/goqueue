@@ -40,6 +40,8 @@ behavior.
 - Keep `README.md` setup-only.
 - Keep detailed usage and feature behavior notes in `docs/`.
 - Keep implementation decisions in `.agents/rules/` flow files.
+- Enforce `docs-sync.md` during behavior-impacting changes to ensure docs/ and
+  README consistency.
 - `CLAUDE.md` should remain a symlink to `AGENTS.md` so agent instructions have
   one source of truth.
 

@@ -43,6 +43,7 @@ controls, or CLI output.
 - Update `README.md` and `docs/reference/cli.md` when CLI behavior changes.
 - Update `.agents/rules/operations.md` and `.agents/rules/worker-runtime.md` when
   retry, revocation, DLQ, pending recovery, or purge semantics change.
+- Apply `docs-sync.md` whenever operational behavior is updated.
 
 ## Tests
 

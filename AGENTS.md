@@ -52,6 +52,8 @@ The normal execution path is:
   result aggregation, and worker advancement.
 - `.agents/rules/operations.md` for inspect, admin, CLI, observability, and
   control-plane behavior.
+- `.agents/rules/docs-sync.md` for documentation updates required when SDK behavior
+  changes.
 - `.agents/rules/testing-release.md` for verification, CI, integration tests,
   public packaging, and release readiness.
 - `.agents/rules/security-config.md` for secrets, environment variables,

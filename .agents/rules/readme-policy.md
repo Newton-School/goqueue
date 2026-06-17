@@ -39,3 +39,5 @@ Use this file for any edits to `README.md`.
 - Keep implementation behavior and edge-case notes in `.agents/rules/`.
 - If a contributor adds non-setup content to README, move it to the relevant
   rule file under `.agents/rules/`.
+- For all setup changes that impact docs, apply docs updates in sync using
+  `docs-sync.md`.

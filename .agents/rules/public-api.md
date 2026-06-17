@@ -41,6 +41,8 @@ or anything that an importing application can compile against.
 
 - Update `README.md` only for setup or configuration setup changes.
 - Update relevant rule files in `.agents/rules/` when changing runtime
-  semantics, operational behavior, or failure handling.
+- semantics, operational behavior, or failure handling.
+- Run `docs-sync.md` when exported API behavior is user-visible to keep
+  `docs/` pages aligned.
 - Do not add internal planning notes, local paths, or private rollout history to
   public docs.

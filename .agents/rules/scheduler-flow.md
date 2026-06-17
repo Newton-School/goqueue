@@ -41,6 +41,14 @@ interval schedules, Redis scheduler coordination, or scheduler documentation.
 - Lock ownership must be checked before advancing a periodic definition.
 - Do not bypass backend lease methods with direct Redis calls from `scheduler/`.
 
+## Documentation
+
+- Keep scheduler and periodic task behavior docs current in
+  `docs/docs/concepts/scheduler.md`.
+- If default interval behavior or retry lock semantics change, update workflow and
+  operation docs as needed.
+- Apply `docs-sync.md` when scheduler-facing behavior changes.
+
 ## Tests
 
 - Use deterministic clocks through `WithSchedulerNow`.

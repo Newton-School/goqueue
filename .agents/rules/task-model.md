@@ -49,3 +49,10 @@ metadata, handlers, retry policy, timing, validation, or result/state types.
 - Prefer table tests for validation matrices.
 - Include malformed message or malformed payload coverage when changing decode
   paths.
+
+## Documentation
+
+- Update `docs/docs/concepts/task-model.md` when envelope validation, defaults,
+  timing, metadata, or result semantics change.
+- Apply docs updates through `docs-sync.md` when user-facing task model behavior
+  changes.

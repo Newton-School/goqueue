@@ -51,6 +51,14 @@ advancement.
 - Workers dispatch the callback once when all header tasks succeed.
 - Callback tasks carry chord callback metadata.
 
+## Documentation
+
+- Keep `docs/docs/concepts/workflow.md` aligned with signature chains/groups/chords
+  behavior.
+- Update `docs/docs/reference/errors.md` when failure mode wording for workflows
+  changes.
+- Apply `docs-sync.md` before wrapping workflow changes.
+
 ## Tests
 
 - Cover signature normalization, metadata merge precedence, chain first dispatch,

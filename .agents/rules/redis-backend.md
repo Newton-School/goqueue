@@ -33,6 +33,13 @@ state.
 - Consumer group creation, stream reads, acknowledgements, and pending claims
   belong behind backend methods.
 
+## Documentation
+
+- Any Redis model/contract changes must be reflected in
+  `docs/docs/concepts/redis-backend.md` and, when user-visible, `docs/docs/concepts/task-model.md`.
+- If storage/error wording changes for users, sync `docs/docs/reference/errors.md`.
+- Apply documentation updates through `docs-sync.md` for backend-facing behavior changes.
+
 ## Reliability Storage
 
 - Dead-letter records must keep enough information for replay and debugging:
