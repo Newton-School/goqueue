@@ -1,4 +1,4 @@
-.PHONY: fmt test vet race cover staticcheck vulncheck integration-test verify audit docs-install docs-build docs-serve
+.PHONY: fmt test vet race cover staticcheck vulncheck integration-test verify audit docs-install docs-start docs-build docs-serve
 
 GOFILES := $(shell find . -name '*.go' -not -path './.git/*')
 
@@ -38,6 +38,9 @@ docs-install:
 
 docs-build:
 	cd docs && npm run docs-build
+
+docs-start:
+	cd docs && npm run docs-start
 
 docs-serve:
 	cd docs && npm run docs-serve
