@@ -38,7 +38,8 @@ behavior.
   operational context, and generated scratch artifacts.
 - Keep package docs present for public packages.
 - Keep `README.md` setup-only.
-- Keep detailed usage and feature behavior notes in `.agents/rules/` flow files.
+- Keep detailed usage and feature behavior notes in `docs/`.
+- Keep implementation decisions in `.agents/rules/` flow files.
 - `CLAUDE.md` should remain a symlink to `AGENTS.md` so agent instructions have
   one source of truth.
 

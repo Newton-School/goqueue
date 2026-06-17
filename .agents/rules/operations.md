@@ -40,8 +40,7 @@ controls, or CLI output.
 
 ## Documentation
 
-- Update `README.md` and `.agents/rules/operations.md` when CLI behavior or
-  inspect output changes.
+- Update `README.md` and `docs/reference/cli.md` when CLI behavior changes.
 - Update `.agents/rules/operations.md` and `.agents/rules/worker-runtime.md` when
   retry, revocation, DLQ, pending recovery, or purge semantics change.
 

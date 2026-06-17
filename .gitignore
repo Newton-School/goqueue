@@ -11,6 +11,11 @@ dist/
 coverage.out
 coverage.html
 
+# Docs tooling artifacts
+docs/node_modules/
+docs/.docusaurus/
+docs/build/
+
 # Dependency and workspace caches
 .cache/
 .tmp/

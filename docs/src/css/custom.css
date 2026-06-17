@@ -1,0 +1,8 @@
+:root {
+  --ifm-color-primary: #1a73e8;
+}
+
+html,
+body {
+  scroll-behavior: smooth;
+}

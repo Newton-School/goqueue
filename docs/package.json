@@ -1,0 +1,17 @@
+{
+  "name": "goqueue-docs",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "docs-install": "npm install",
+    "docs-start": "docusaurus start",
+    "docs-build": "docusaurus build",
+    "docs-serve": "docusaurus serve"
+  },
+  "dependencies": {
+    "@docusaurus/core": "^3.6.3",
+    "@docusaurus/preset-classic": "^3.6.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  }
+}

@@ -34,7 +34,8 @@ Use this file for any edits to `README.md`.
 
 ## Enforcement
 
-- Keep long-form usage and behavior notes in `.agents/rules/` files.
-- Keep CLI usage docs in `.agents/rules/operations.md` unless it is strictly setup-only.
+- Keep long-form usage and behavior notes in `docs/`.
+- Keep CLI usage docs in `docs/reference/cli.md`.
+- Keep implementation behavior and edge-case notes in `.agents/rules/`.
 - If a contributor adds non-setup content to README, move it to the relevant
   rule file under `.agents/rules/`.
