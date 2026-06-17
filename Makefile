@@ -34,10 +34,10 @@ verify:
 audit: verify staticcheck vulncheck race
 
 docs-install:
-\tcd docs && npm run docs-install
+	cd docs && npm run docs-install
 
 docs-build:
-\tcd docs && npm run docs-build
+	cd docs && npm run docs-build
 
 docs-serve:
-\tcd docs && npm run docs-serve
+	cd docs && npm run docs-serve
